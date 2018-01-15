@@ -1,4 +1,4 @@
-/// Bounds represents interval [a,b).
+/// Bounds represents interval [a,b].
 #[derive(Debug, PartialEq)]
 pub struct Bounds {
     a: f64,
@@ -7,16 +7,21 @@ pub struct Bounds {
 
 impl Bounds {
     pub fn new(a: f64, b: f64) -> Bounds {
-        assert!(a < b);
+        assert!(a <= b);
         assert!(a.is_finite() && b.is_finite());
         Bounds { a, b }
     }
 }
 
-/// Use a sliding window technique for find an interval where the signs change
-/// on the extents.  If f is continuous, then the Intermediate Value Theorem
-/// guarantees our interval contains at least one root.
-pub fn sign_change_window<F>(f: &F, bounds: &Bounds, window_size: f64) -> Option<Bounds>
+fn is_sign_change(lhs: f64, rhs: f64) -> bool {
+	lhs * rhs < 0.0	
+}
+
+/// Scans the interval [a,b] and emits the first bracket containing a sign
+/// change.  For a continuous function, the Intermediate Value Theorem
+/// guarantees that this bracket contains at least one root.  For non-continuous
+/// functions, there might be a singularity instead.
+pub fn first_bracket<F>(f: &F, bounds: &Bounds, window_size: f64) -> Option<Bounds>
 where
     F: Fn(f64) -> f64,
 {
@@ -30,7 +35,7 @@ where
         let f_b = f(win.b);
 
         // sign change at current window
-        if f_a == 0.0 || f_a * f_b < 0.0 {
+        if f_a == 0.0 || is_sign_change(f_a, f_b) {
             return Some(win);
         }
 
@@ -99,31 +104,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_sign_change_window_hit() {
+    fn test_first_bracket_hit() {
         // root at x=-9
         let f = |x| x + 9.0;
-        let win = sign_change_window(&f, &Bounds::new(-100.0, 100.0), 10.0).expect("window found");
+        let win = first_bracket(&f, &Bounds::new(-100.0, 100.0), 10.0).expect("window found");
         assert_eq!(win, Bounds::new(-10.0, 0.0));
 
         // sign change on inclusive-side of window boundary
-        let win = sign_change_window(&f, &Bounds::new(-29.0, -8.0), 10.0).expect("window found");
+        let win = first_bracket(&f, &Bounds::new(-29.0, -8.0), 10.0).expect("window found");
         assert_eq!(win, Bounds::new(-9.0, 1.0));
     }
 
     #[test]
-    fn test_sign_change_window_miss() {
+    fn test_first_bracket_miss() {
         // root at x=-9, but window doesn't include
         let f = |x| x + 9.0;
-        let win = sign_change_window(&f, &Bounds::new(0.0, 100.0), 10.0);
+        let win = first_bracket(&f, &Bounds::new(0.0, 100.0), 10.0);
         assert!(win.is_none());
 
         // sign change on exclusive-side of window boundary
-        let win = sign_change_window(&f, &Bounds::new(-29.0, -9.0), 10.0);
+        let win = first_bracket(&f, &Bounds::new(-29.0, -9.0), 10.0);
         assert!(win.is_none());
 
         // no root
         let f = |_| 33.0;
-        let win = sign_change_window(&f, &Bounds::new(-100.0, 100.0), 1.0);
+        let win = first_bracket(&f, &Bounds::new(-100.0, 100.0), 1.0);
         assert!(win.is_none());
     }
 
