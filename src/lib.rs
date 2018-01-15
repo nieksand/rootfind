@@ -14,7 +14,7 @@ impl Bounds {
 }
 
 fn is_sign_change(lhs: f64, rhs: f64) -> bool {
-    lhs * rhs < 0.0
+    lhs.signum() != rhs.signum()
 }
 
 /// Scans the interval [a,b] and emits the first bracket containing a sign
@@ -105,14 +105,16 @@ mod tests {
 
     #[test]
     fn test_is_sign_change() {
-        // same, same
         assert_eq!(is_sign_change(-1.0, -1.0), false);
-        assert_eq!(is_sign_change(0.0, -1.0), false);
-        assert_eq!(is_sign_change(0.0, 0.0), false);
-        assert_eq!(is_sign_change(0.0, 1.0), false);
         assert_eq!(is_sign_change(1.0, 1.0), false);
 
-        // but different
+        assert_eq!(is_sign_change(-0.0, -1.0), false);
+        assert_eq!(is_sign_change(0.0, -1.0), true);
+        assert_eq!(is_sign_change(-0.0, 0.0), true);
+
+        assert_eq!(is_sign_change(0.0, 0.0), false);
+        assert_eq!(is_sign_change(0.0, 1.0), false);
+
         assert_eq!(is_sign_change(-1.0, 1.0), true);
     }
 
