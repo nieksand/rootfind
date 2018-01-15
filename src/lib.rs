@@ -1,4 +1,4 @@
-/// Bounds represents interval [a,b].
+/// Bounds represents the closed interval [a,b].
 #[derive(Debug, PartialEq)]
 pub struct Bounds {
     a: f64,
@@ -13,38 +13,46 @@ impl Bounds {
     }
 }
 
+/// Determines whether the sign of the values differs, properly handling integer
+/// underflow.
 fn is_sign_change(lhs: f64, rhs: f64) -> bool {
     lhs.signum() != rhs.signum()
 }
 
-/// Scans the interval [a,b] and emits the first bracket containing a sign
-/// change.  For a continuous function, the Intermediate Value Theorem
-/// guarantees that this bracket contains at least one root.  For non-continuous
-/// functions, there might be a singularity instead.
+/// Scans interval [a,b] and emits the first bracket containing a sign change.
+/// For a continuous function the Intermediate Value Theorem guarantees that the
+/// bracket contains at least one root.  Without a continuity guarantee, it
+/// might be a singularity instead.
 pub fn first_bracket<F>(f: &F, bounds: &Bounds, window_size: f64) -> Option<Bounds>
 where
     F: Fn(f64) -> f64,
 {
+	assert!(window_size > 0.0);
+
     let mut win = Bounds {
         a: bounds.a,
-        b: bounds.a + window_size,
+        b: (bounds.a + window_size).min(bounds.b),
     };
 
     let mut f_a = f(win.a);
     while win.a < bounds.b {
         let f_b = f(win.b);
 
-        // sign change at current window
-        if f_a == 0.0 || is_sign_change(f_a, f_b) {
+        // found root or singularity
+        if is_sign_change(f_a, f_b) {
             return Some(win);
         }
 
         f_a = f_b;
         win.a = win.b;
-        win.b += window_size;
+        win.b = (win.b + window_size).min(bounds.b);
     }
     None
 }
+
+
+
+
 
 #[derive(Debug)]
 pub enum RootError {
@@ -104,29 +112,81 @@ mod tests {
     use super::*;
 
     #[test]
+	fn test_bounds_new_valid() {
+		let b = Bounds::new(-2.0, 2.0);
+		assert_eq!(b.a, -2.0);
+		assert_eq!(b.b, 2.0);
+
+		let b = Bounds::new(2.0, 2.0);
+		assert_eq!(b.a, 2.0);
+		assert_eq!(b.b, 2.0);
+	}
+
+    #[test]
+	#[should_panic]
+	fn test_bounds_new_flipped_extents() {
+		Bounds::new(2.0, -2.0);
+	}
+
+    #[test]
+	#[should_panic]
+	fn test_bounds_new_nan() {
+		Bounds::new(std::f64::NAN, -2.0);
+	}
+
+    #[test]
+	#[should_panic]
+	fn test_bounds_new_infinite() {
+		Bounds::new(std::f64::NEG_INFINITY, std::f64::INFINITY);
+	}
+
+    #[test]
     fn test_is_sign_change() {
+		// easy peasy
         assert_eq!(is_sign_change(-1.0, -1.0), false);
         assert_eq!(is_sign_change(1.0, 1.0), false);
+        assert_eq!(is_sign_change(-1.0, 1.0), true);
 
-        assert_eq!(is_sign_change(-0.0, -1.0), false);
-        assert_eq!(is_sign_change(0.0, -1.0), true);
-        assert_eq!(is_sign_change(-0.0, 0.0), true);
-
+		// zero tests
         assert_eq!(is_sign_change(0.0, 0.0), false);
         assert_eq!(is_sign_change(0.0, 1.0), false);
+        assert_eq!(is_sign_change(0.0, -1.0), true);
 
-        assert_eq!(is_sign_change(-1.0, 1.0), true);
+		// naughty signed zeroes
+        assert_eq!(is_sign_change(-0.0, -1.0), false);
+        assert_eq!(is_sign_change(-0.0, 0.0), true);
     }
 
     #[test]
     fn test_is_sign_change_underflow() {
-        // floating point underflow fails on naive a*b<0 check
+        // floating point underflow breaks naive a*b<0 check
         assert_eq!(
             is_sign_change(1e-120, -2e-300),
             true,
             "sign change with float underflow"
         );
     }
+
+    #[test]
+	#[should_panic]
+	fn test_first_bracket_negative_window() {
+        let f = |x| x*x;
+		first_bracket(&f, &Bounds::new(-20.0, 20.0), -1.0);
+	}
+
+    #[test]
+	#[should_panic]
+	fn test_first_bracket_zero_window() {
+        let f = |x| x*x;
+		first_bracket(&f, &Bounds::new(-20.0, 20.0), 0.0);
+	}
+
+
+
+
+
+
+
 
     #[test]
     fn test_first_bracket_hit() {
