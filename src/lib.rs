@@ -68,6 +68,8 @@ where
     let mut window: Bounds = (*bounds).clone();
     let mut f_a = f(window.a);
 
+    assert!(is_sign_change(f_a, f(window.b)));
+
     for _ in 0..max_iter {
         let mid = window.middle();
         let f_mid = f(mid);
@@ -292,6 +294,13 @@ mod tests {
         let df = |x: f64| -x.sin() - 3.0 * x * x;
         let root = newton_raphson(&f, &df, 0.5, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bisection_no_straddle() {
+        let f = |x| x * x;
+        let _ = bisection(&f, &Bounds::new(-10.0, -5.0), 100);
     }
 
     #[test]
