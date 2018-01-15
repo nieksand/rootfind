@@ -1,5 +1,5 @@
 /// Bounds represents the closed interval [a,b].
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Bounds {
     a: f64,
     b: f64,
@@ -10,6 +10,10 @@ impl Bounds {
         assert!(a <= b);
         assert!(a.is_finite() && b.is_finite());
         Bounds { a, b }
+    }
+
+    pub fn middle(&self) -> f64 {
+        self.a + (self.b - self.a) / 2.0
     }
 }
 
@@ -54,6 +58,33 @@ pub enum RootError {
     ZeroDerivative { x: f64 },
     Singularity { x: f64 },
     IterationLimit { last_x: f64 },
+}
+
+/// Root finding via Bisection Method.
+pub fn bisection<F>(f: &F, bounds: &Bounds, max_iter: usize) -> Result<f64, RootError>
+where
+    F: Fn(f64) -> f64,
+{
+    let mut window: Bounds = (*bounds).clone();
+    let mut f_a = f(window.a);
+
+    for _ in 0..max_iter {
+        let mid = window.middle();
+        let f_mid = f(mid);
+
+        if is_sign_change(f_a, f_mid) {
+            window.b = mid;
+        } else {
+            window.a = mid;
+            f_a = f_mid;
+        }
+
+        // convergence criteria
+        if window.b - window.a < 1e-9 {
+            return Ok(window.a);
+        }
+    }
+    Err(RootError::IterationLimit { last_x: window.a })
 }
 
 /// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and
@@ -219,7 +250,7 @@ mod tests {
     fn test_newton_nonfinite_start() {
         let f = |x| (x - 5.0) * (x - 4.0);
         let df = |x| 2.0 * x - 9.0;
-        newton_raphson(&f, &df, std::f64::NAN, 100);
+        let _ = newton_raphson(&f, &df, std::f64::NAN, 100);
     }
 
     #[test]
