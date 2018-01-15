@@ -14,7 +14,7 @@ impl Bounds {
 }
 
 fn is_sign_change(lhs: f64, rhs: f64) -> bool {
-	lhs * rhs < 0.0	
+    lhs * rhs < 0.0
 }
 
 /// Scans the interval [a,b] and emits the first bracket containing a sign
@@ -102,6 +102,29 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_sign_change() {
+        // same, same
+        assert_eq!(is_sign_change(-1.0, -1.0), false);
+        assert_eq!(is_sign_change(0.0, -1.0), false);
+        assert_eq!(is_sign_change(0.0, 0.0), false);
+        assert_eq!(is_sign_change(0.0, 1.0), false);
+        assert_eq!(is_sign_change(1.0, 1.0), false);
+
+        // but different
+        assert_eq!(is_sign_change(-1.0, 1.0), true);
+    }
+
+    #[test]
+    fn test_is_sign_change_underflow() {
+        // floating point underflow fails on naive a*b<0 check
+        assert_eq!(
+            is_sign_change(1e-120, -2e-300),
+            true,
+            "sign change with float underflow"
+        );
+    }
 
     #[test]
     fn test_first_bracket_hit() {
