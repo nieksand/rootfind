@@ -13,8 +13,7 @@ impl Bounds {
     }
 }
 
-/// Determines whether the sign of the values differs, properly handling integer
-/// underflow.
+/// Whether signs of values differ, properly handling integer underflow.
 fn is_sign_change(lhs: f64, rhs: f64) -> bool {
     lhs.signum() != rhs.signum()
 }
