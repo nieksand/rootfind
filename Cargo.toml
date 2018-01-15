@@ -1,0 +1,6 @@
+[package]
+name = "rootfind"
+version = "0.1.0"
+authors = ["Niek Sanders <niek.sanders@gmail.com>"]
+
+[dependencies]
