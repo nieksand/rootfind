@@ -1,5 +1,12 @@
 # Root Finding
-Find roots!
+A vanilla implementation of Newton-Raphson root finding for functions over R^1.
+
+I needed this for implementing Fukushima's method of doing geodetic to
+geocentric coordinate transforms.  At some point I will be adding Halley's root
+finding method too, since he uses that in his 2006 updated paper.
+
+# Usage
+...
 
 # Author
 This was written by Niek Sanders (niek.sanders@gmail.com).
