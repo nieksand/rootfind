@@ -53,7 +53,7 @@ where
 #[derive(Debug)]
 pub enum RootError {
     ZeroDerivative(f64),
-    IterationLimit,
+    IterationLimit { last_x: f64 },
 }
 
 /// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and
@@ -80,7 +80,7 @@ where
         }
 
         if it > max_iter {
-            return Err(RootError::IterationLimit);
+            return Err(RootError::IterationLimit { last_x: x_cur });
         }
 
         x_pre = x_cur;
@@ -245,5 +245,12 @@ mod tests {
         let df = |x: f64| -x.sin() - 3.0 * x * x;
         let root = newton_raphson(&f, &df, 0.5, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_newton_singularity() {
+        let f = |x| if x < 1.0 { x - 2.0 } else { x };
+        let df = |x| if x != 1.0 { 1.0 } else { std::f64::NAN };
+        let _sing = newton_raphson(&f, &df, 0.9, 100).expect("potato");
     }
 }
