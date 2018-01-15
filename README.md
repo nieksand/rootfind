@@ -32,6 +32,8 @@ A good introduction for Newton-Raphson is in:
     Richard W Hamming. 1986. Numerical Methods for Scientists and Engineers 
     (2nd Ed.). Dover Publications, Inc., New York, NY, USA.
 
+The "Root-finding algorithm" wikipedia page is good topic intro.
+
 The "Newton's method" wikipedia page is also quite comprehensive.
 
 The Numerical Recipes book also has a strong treatment, but it is encumbered by
