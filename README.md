@@ -8,6 +8,17 @@ finding method too, since he uses that in his 2006 updated paper.
 # Usage
 ...
 
+# References
+A good introduction for Newton-Raphson is in:
+
+    Richard W Hamming. 1986. Numerical Methods for Scientists and Engineers 
+    (2nd Ed.). Dover Publications, Inc., New York, NY, USA.
+
+The "Newton's method" wikipedia page is also quite comprehensive.
+
+The Numerical Recipes book also has a strong treatment, but it is encumbered by
+copyright when it comes to implementation.
+
 # Author
 This was written by Niek Sanders (niek.sanders@gmail.com).
 
