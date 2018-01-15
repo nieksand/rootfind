@@ -4,7 +4,7 @@ pub enum RootError {
     MaxIterations,
 }
 
-/// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and 
+/// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and
 /// its first derivative while 'start' indicates the initial guess.
 pub fn newton_raphson<F1, F2>(
     f: &F1,
@@ -70,7 +70,7 @@ mod tests {
     }
 
     #[test]
-    fn it_works() {
+    fn test_parabola() {
         let f = |x| (x - 5.0) * (x - 4.0);
         let df = |x| 2.0 * x - 9.0;
 
@@ -79,5 +79,20 @@ mod tests {
 
         let root = newton_raphson(&f, &df, 3.8, 100).expect("found root");
         assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
+    }
+
+    #[test]
+    fn test_wikipedia() {
+        // first example from wikipedia
+        let f = |x| x * x - 612.0;
+        let df = |x| 2.0 * x;
+        let root = newton_raphson(&f, &df, 10.0, 100).expect("found root");
+        assert!((root - 24.7386337537).abs() < 1e-9);
+
+        // second example from wikipedia
+        let f = |x: f64| x.cos() - x * x * x;
+        let df = |x: f64| -x.sin() - 3.0 * x * x;
+        let root = newton_raphson(&f, &df, 0.5, 100).expect("found root");
+        assert!((root - 0.865474033102).abs() < 1e-9);
     }
 }
