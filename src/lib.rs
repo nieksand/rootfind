@@ -293,4 +293,28 @@ mod tests {
         let root = newton_raphson(&f, &df, 0.5, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
     }
+
+    #[test]
+    fn test_bisection_parabola() {
+        let f = |x| (x - 5.0) * (x - 4.0);
+
+        let root = bisection(&f, &Bounds::new(4.5, 100.0), 100).expect("found root");
+        assert!((root - 5.0).abs() < 1e-9, "wanted root x=5");
+
+        let root = bisection(&f, &Bounds::new(-100000.0, 4.01), 100).expect("found root");
+        assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
+    }
+
+    #[test]
+    fn test_bisection_wikipedia() {
+        // first example from wikipedia
+        let f = |x| x * x - 612.0;
+        let root = bisection(&f, &Bounds::new(10.0, 30.0), 100).expect("found root");
+        assert!((root - 24.7386337537).abs() < 1e-9);
+
+        // second example from wikipedia
+        let f = |x: f64| x.cos() - x * x * x;
+        let root = bisection(&f, &Bounds::new(0.0, 1.0), 100).expect("found root");
+        assert!((root - 0.865474033102).abs() < 1e-9);
+    }
 }
