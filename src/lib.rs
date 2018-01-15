@@ -255,6 +255,13 @@ mod tests {
     }
 
     #[test]
+    fn test_bisection_centered_root() {
+        let f = |x| x;
+        let root = bisection(&f, &Bounds::new(-1000000.0, 1000000.0), 100).expect("found root");
+        assert!(root.abs() < 1e-9, "wanted root x=0");
+    }
+
+    #[test]
     fn test_bisection_parabola() {
         let f = |x| (x - 5.0) * (x - 4.0);
 
