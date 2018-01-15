@@ -50,13 +50,6 @@ where
     None
 }
 
-
-
-
-
-
-
-
 #[derive(Debug)]
 pub enum RootError {
     ZeroDerivative(f64),
@@ -191,9 +184,13 @@ mod tests {
         let win = first_bracket(&f, &Bounds::new(-100.0, 100.0), 10.0).expect("window found");
         assert_eq!(win, Bounds::new(-10.0, 0.0));
 
-        // sign change on inclusive-side of window boundary
+        // sign change on right window boundary
         let win = first_bracket(&f, &Bounds::new(-29.0, -8.0), 10.0).expect("window found");
-        assert_eq!(win, Bounds::new(-9.0, 1.0));
+        assert_eq!(win, Bounds::new(-19.0, -9.0));
+
+        // sign change on left window boundary
+        let win = first_bracket(&f, &Bounds::new(-19.0, -9.0), 10.0).expect("window found");
+        assert_eq!(win, Bounds::new(-19.0, -9.0));
     }
 
     #[test]
@@ -203,10 +200,6 @@ mod tests {
         let win = first_bracket(&f, &Bounds::new(0.0, 100.0), 10.0);
         assert!(win.is_none());
 
-        // sign change on exclusive-side of window boundary
-        let win = first_bracket(&f, &Bounds::new(-29.0, -9.0), 10.0);
-        assert!(win.is_none());
-
         // no root
         let f = |_| 33.0;
         let win = first_bracket(&f, &Bounds::new(-100.0, 100.0), 1.0);
@@ -214,7 +207,7 @@ mod tests {
     }
 
     #[test]
-    fn test_zero_derivative() {
+    fn test_newton_zero_derivative() {
         let f = |_| 2.0;
         let df = |_| 0.0;
         match newton_raphson(&f, &df, 5.8, 100).expect_err("zero derivative not ok") {
@@ -228,7 +221,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parabola() {
+    fn test_newton_parabola() {
         let f = |x| (x - 5.0) * (x - 4.0);
         let df = |x| 2.0 * x - 9.0;
 
@@ -240,7 +233,7 @@ mod tests {
     }
 
     #[test]
-    fn test_wikipedia() {
+    fn test_newton_wikipedia() {
         // first example from wikipedia
         let f = |x| x * x - 612.0;
         let df = |x| 2.0 * x;
