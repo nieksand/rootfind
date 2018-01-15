@@ -30,7 +30,7 @@ where
         let f_b = f(win.b);
 
         // sign change at current window
-        if f_a * f_b < 0.0 {
+        if f_a == 0.0 || f_a * f_b < 0.0 {
             return Some(win);
         }
 
