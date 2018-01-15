@@ -27,7 +27,7 @@ pub fn first_bracket<F>(f: &F, bounds: &Bounds, window_size: f64) -> Option<Boun
 where
     F: Fn(f64) -> f64,
 {
-	assert!(window_size > 0.0);
+    assert!(window_size > 0.0);
 
     let mut win = Bounds {
         a: bounds.a,
@@ -49,10 +49,6 @@ where
     }
     None
 }
-
-
-
-
 
 #[derive(Debug)]
 pub enum RootError {
@@ -112,47 +108,47 @@ mod tests {
     use super::*;
 
     #[test]
-	fn test_bounds_new_valid() {
-		let b = Bounds::new(-2.0, 2.0);
-		assert_eq!(b.a, -2.0);
-		assert_eq!(b.b, 2.0);
+    fn test_bounds_new_valid() {
+        let b = Bounds::new(-2.0, 2.0);
+        assert_eq!(b.a, -2.0);
+        assert_eq!(b.b, 2.0);
 
-		let b = Bounds::new(2.0, 2.0);
-		assert_eq!(b.a, 2.0);
-		assert_eq!(b.b, 2.0);
-	}
-
-    #[test]
-	#[should_panic]
-	fn test_bounds_new_flipped_extents() {
-		Bounds::new(2.0, -2.0);
-	}
+        let b = Bounds::new(2.0, 2.0);
+        assert_eq!(b.a, 2.0);
+        assert_eq!(b.b, 2.0);
+    }
 
     #[test]
-	#[should_panic]
-	fn test_bounds_new_nan() {
-		Bounds::new(std::f64::NAN, -2.0);
-	}
+    #[should_panic]
+    fn test_bounds_new_flipped_extents() {
+        Bounds::new(2.0, -2.0);
+    }
 
     #[test]
-	#[should_panic]
-	fn test_bounds_new_infinite() {
-		Bounds::new(std::f64::NEG_INFINITY, std::f64::INFINITY);
-	}
+    #[should_panic]
+    fn test_bounds_new_nan() {
+        Bounds::new(std::f64::NAN, -2.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bounds_new_infinite() {
+        Bounds::new(std::f64::NEG_INFINITY, std::f64::INFINITY);
+    }
 
     #[test]
     fn test_is_sign_change() {
-		// easy peasy
+        // easy peasy
         assert_eq!(is_sign_change(-1.0, -1.0), false);
         assert_eq!(is_sign_change(1.0, 1.0), false);
         assert_eq!(is_sign_change(-1.0, 1.0), true);
 
-		// zero tests
+        // zero tests
         assert_eq!(is_sign_change(0.0, 0.0), false);
         assert_eq!(is_sign_change(0.0, 1.0), false);
         assert_eq!(is_sign_change(0.0, -1.0), true);
 
-		// naughty signed zeroes
+        // naughty signed zeroes
         assert_eq!(is_sign_change(-0.0, -1.0), false);
         assert_eq!(is_sign_change(-0.0, 0.0), true);
     }
@@ -168,25 +164,18 @@ mod tests {
     }
 
     #[test]
-	#[should_panic]
-	fn test_first_bracket_negative_window() {
-        let f = |x| x*x;
-		first_bracket(&f, &Bounds::new(-20.0, 20.0), -1.0);
-	}
+    #[should_panic]
+    fn test_first_bracket_negative_window() {
+        let f = |x| x * x;
+        first_bracket(&f, &Bounds::new(-20.0, 20.0), -1.0);
+    }
 
     #[test]
-	#[should_panic]
-	fn test_first_bracket_zero_window() {
-        let f = |x| x*x;
-		first_bracket(&f, &Bounds::new(-20.0, 20.0), 0.0);
-	}
-
-
-
-
-
-
-
+    #[should_panic]
+    fn test_first_bracket_zero_window() {
+        let f = |x| x * x;
+        first_bracket(&f, &Bounds::new(-20.0, 20.0), 0.0);
+    }
 
     #[test]
     fn test_first_bracket_hit() {
