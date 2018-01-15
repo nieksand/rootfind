@@ -1,4 +1,7 @@
 # Root Finding
+
+***Work in progress.  Not ready for use!***
+
 A vanilla implementation of Newton-Raphson root finding for functions over R^1.
 
 I needed this for implementing Fukushima's method of doing geodetic to
