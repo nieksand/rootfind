@@ -68,6 +68,8 @@ where
     F1: Fn(f64) -> f64,
     F2: Fn(f64) -> f64,
 {
+    assert!(start.is_finite());
+
     let epsilon = 1e-9;
 
     let mut x_pre = start;
@@ -210,6 +212,14 @@ mod tests {
         let f = |_| 33.0;
         let win = first_bracket(&f, &Bounds::new(-100.0, 100.0), 1.0);
         assert!(win.is_none());
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_newton_nonfinite_start() {
+        let f = |x| (x - 5.0) * (x - 4.0);
+        let df = |x| 2.0 * x - 9.0;
+        newton_raphson(&f, &df, std::f64::NAN, 100);
     }
 
     #[test]
