@@ -50,10 +50,17 @@ where
     None
 }
 
+
+
+
+
+
+
+
 #[derive(Debug)]
 pub enum RootError {
     ZeroDerivative(f64),
-    MaxIterations,
+    IterationLimit,
 }
 
 /// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and
@@ -80,7 +87,7 @@ where
         }
 
         if it > max_iter {
-            return Err(RootError::MaxIterations);
+            return Err(RootError::IterationLimit);
         }
 
         x_pre = x_cur;
