@@ -52,7 +52,7 @@ where
 
 #[derive(Debug)]
 pub enum RootError {
-    ZeroDerivative(f64),
+    ZeroDerivative { x: f64 },
     IterationLimit { last_x: f64 },
 }
 
@@ -98,7 +98,7 @@ where
 {
     let denom = df(x);
     if denom == 0.0 {
-        return Err(RootError::ZeroDerivative(x));
+        return Err(RootError::ZeroDerivative { x });
     }
     Ok(x - f(x) / denom)
 }
@@ -211,7 +211,7 @@ mod tests {
         let f = |_| 2.0;
         let df = |_| 0.0;
         match newton_raphson(&f, &df, 5.8, 100).expect_err("zero derivative not ok") {
-            RootError::ZeroDerivative(_) => {
+            RootError::ZeroDerivative { .. } => {
                 return;
             }
             _ => {
