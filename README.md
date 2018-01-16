@@ -2,11 +2,17 @@
 
 ***Work in progress.  Not ready for use!***
 
-A vanilla implementation of Newton-Raphson root finding for functions over R^1.
+Root finding functions implemented in Rust.
 
-I needed this for implementing Fukushima's method of doing geodetic to
-geocentric coordinate transforms.  At some point I will be adding Halley's root
-finding method too, since he uses that in his 2006 updated paper.
+Currently features:
+
+* Newton-Raphson
+* Bisection
+* Bracket generation
+
+I made this so I could implement Fukushima's algorithm for geodetic to
+geocentric coordinate transforms.  I will be adding Halley's root finding method
+too, since Fukushima uses that in his updated 2006 paper.
 
 # General Approach
 
