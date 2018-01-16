@@ -7,6 +7,7 @@ Root finding functions implemented in Rust.
 Currently features:
 
 * Newton-Raphson
+* Halley's Method
 * Bisection
 * Bracket generation
 
