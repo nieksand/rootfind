@@ -163,10 +163,6 @@ where
     loop {
         // convergence criteria
         if (x_cur - x_pre).abs() < epsilon {
-            // sanity check
-            if f(x_cur).abs() > epsilon {
-                return Err(RootError::Singularity { x: x_cur });
-            }
             return Ok(x_cur);
         }
 
@@ -193,6 +189,60 @@ where
         return Err(RootError::ZeroDerivative { x });
     }
     Ok(x - f(x) / denom)
+}
+
+/// Root finding using Halley's method.  The 'f', 'df', and 'd2f' are the
+/// function and it's first and second derivatives.  The 'start' indicates the
+/// initial guess.
+pub fn halley_method<F1, F2, F3>(
+    f: &F1,
+    df: &F2,
+    d2f: &F3,
+    start: f64,
+    max_iter: usize,
+) -> Result<f64, RootError>
+where
+    F1: Fn(f64) -> f64,
+    F2: Fn(f64) -> f64,
+    F3: Fn(f64) -> f64,
+{
+    assert!(start.is_finite());
+
+    let epsilon = 1e-9;
+
+    let mut x_pre = start;
+    let mut x_cur = halley_iteration(f, df, d2f, x_pre)?;
+    let mut it = 1;
+
+    loop {
+        // convergence criteria
+        if (x_cur - x_pre).abs() < epsilon {
+            return Ok(x_cur);
+        }
+
+        // stopping criteria
+        if it > max_iter {
+            return Err(RootError::IterationLimit { last_x: x_cur });
+        }
+
+        x_pre = x_cur;
+        x_cur = halley_iteration(f, df, d2f, x_pre)?;
+        it += 1;
+    }
+}
+
+/// Evaluate a single iteration for Halley's method.
+fn halley_iteration<F1, F2, F3>(f: &F1, df: &F2, d2f: &F3, x: f64) -> Result<f64, RootError>
+where
+    F1: Fn(f64) -> f64,
+    F2: Fn(f64) -> f64,
+    F3: Fn(f64) -> f64,
+{
+    let f_x = f(x);
+    let df_x = df(x);
+    let d2f_x = d2f(x);
+
+    Ok(x - (2.0 * f_x * df_x) / (2.0 * df_x * df_x - f_x * d2f_x))
 }
 
 #[cfg(test)]
@@ -409,6 +459,36 @@ mod tests {
         let f = |x: f64| x.cos() - x * x * x;
         let df = |x: f64| -x.sin() - 3.0 * x * x;
         let root = newton_raphson(&f, &df, 0.5, 100).expect("found root");
+        assert!((root - 0.865474033102).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_halley_parabola() {
+        let f = |x| (x - 5.0) * (x - 4.0);
+        let df = |x| 2.0 * x - 9.0;
+        let d2f = |_| 2.0;
+
+        let root = halley_method(&f, &df, &d2f, 5.8, 100).expect("found root");
+        assert!((root - 5.0).abs() < 1e-9, "wanted root x=5");
+
+        let root = halley_method(&f, &df, &d2f, 3.8, 100).expect("found root");
+        assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
+    }
+
+    #[test]
+    fn test_halley_wikipedia() {
+        // first example from wikipedia
+        let f = |x| x * x - 612.0;
+        let df = |x| 2.0 * x;
+        let d2f = |_| 2.0;
+        let root = halley_method(&f, &df, &d2f, 10.0, 100).expect("found root");
+        assert!((root - 24.7386337537).abs() < 1e-9);
+
+        // second example from wikipedia
+        let f = |x: f64| x.cos() - x * x * x;
+        let df = |x: f64| -x.sin() - 3.0 * x * x;
+        let d2f = |x: f64| -x.cos() - 6.0 * x;
+        let root = halley_method(&f, &df, &d2f, 0.5, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
     }
 
