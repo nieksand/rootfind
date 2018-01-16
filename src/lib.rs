@@ -17,6 +17,57 @@ impl Bounds {
     }
 }
 
+/// BracketGenerator emits all root-holding brackets as an iterator.  Internally
+/// it is making repeated calls to first_bracket until the entire bounds are
+/// explored.
+pub struct BracketGenerator<'a, F: 'a> {
+    f: &'a F,
+    remaining: Option<Bounds>,
+    window_size: f64,
+}
+
+impl<'a, F> BracketGenerator<'a, F>
+where
+    F: Fn(f64) -> f64,
+{
+    pub fn new(f: &F, bounds: Bounds, window_size: f64) -> BracketGenerator<F> {
+        BracketGenerator {
+            f,
+            remaining: Some(bounds),
+            window_size,
+        }
+    }
+}
+
+impl<'a, F> Iterator for BracketGenerator<'a, F>
+where
+    F: Fn(f64) -> f64,
+{
+    type Item = Bounds;
+
+    fn next(&mut self) -> Option<Bounds> {
+        let mut bounds;
+        {
+            if self.remaining.is_none() {
+                return None;
+            }
+            bounds = self.remaining.clone().expect("remaining bounds");
+        }
+
+        let result = first_bracket(&self.f, &bounds, self.window_size);
+        match result {
+            None => {
+                self.remaining = None;
+            }
+            Some(ref bracket) => {
+                bounds.a = bracket.b;
+                self.remaining = Some(bounds);
+            }
+        }
+        result
+    }
+}
+
 /// Whether signs of values differ, properly handling integer underflow.
 fn is_sign_change(lhs: f64, rhs: f64) -> bool {
     lhs.signum() != rhs.signum()
@@ -178,6 +229,33 @@ mod tests {
     }
 
     #[test]
+    fn test_bracket_generator_hits() {
+        let f = |x: f64| x.sin();
+        let pi = std::f64::consts::PI;
+        let b = Bounds::new(-0.1, 4.0 * pi + 0.1);
+
+        let results: Vec<Bounds> = BracketGenerator::new(&f, b, 1.0).collect();
+
+        // should bracket 0, pi, 2pi, 3pi, 4pi
+        assert_eq!(results.len(), 5);
+
+        assert_eq!(Bounds::new(-0.1, 0.9), results[0]); // 0
+        assert_eq!(Bounds::new(2.9, 3.9), results[1]); // pi
+        assert_eq!(Bounds::new(5.9, 6.9), results[2]); // 2pi
+        assert_eq!(Bounds::new(8.9, 9.9), results[3]); // 3pi
+        assert_eq!(Bounds::new(11.9, 4.0 * pi + 0.1), results[4]); // 4pi
+    }
+
+    #[test]
+    fn test_bracket_generator_empty() {
+        let f = |x: f64| x.sin();
+        let b = Bounds::new(0.1, 0.5);
+
+        let mut gen = BracketGenerator::new(&f, b, 0.1);
+        assert!(gen.next().is_none());
+    }
+
+    #[test]
     fn test_is_sign_change() {
         // easy peasy
         assert_eq!(is_sign_change(-1.0, -1.0), false);
@@ -333,4 +411,19 @@ mod tests {
         let root = newton_raphson(&f, &df, 0.5, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
     }
+
+    /*
+	#[test]
+	fn test_pathology_flatlining() {
+
+		// f(x)=1/e^(x^100) - 0.5, roots approx -0.996342 and 0.996342
+		let f = |x: f64| x.powi(-100).exp() - 0.5;
+
+		// d/dx = -100e^(-x^100) * x^99
+		let df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
+
+        let root = newton_raphson(&f, &df, 0.99999, 100).expect("found root");
+        assert!((root - 0.996342).abs() < 1e-6);
+	}
+*/
 }

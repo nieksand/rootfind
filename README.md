@@ -48,6 +48,10 @@ The "Newton's method" wikipedia page is also quite comprehensive.
 The Numerical Recipes book also has a strong treatment, but it is encumbered by
 copyright when it comes to implementation.
 
+The boost algorithms page has a decent collection and overview:
+
+    http://www.boost.org/doc/libs/1_61_0/libs/math/doc/html/math_toolkit/roots.html
+
 # Author
 This was written by Niek Sanders (niek.sanders@gmail.com).
 
