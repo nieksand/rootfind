@@ -375,6 +375,55 @@ mod tests {
         assert!(win.is_none());
     }
 
+    struct RootTest<F1, F2, F3> {
+        name: String,
+        f: F1,
+        df: Option<F2>,
+        d2f: Option<F3>,
+        roots: Vec<f64>,
+        guesses: Vec<f64>,
+        brackets: Vec<Bounds>,
+    }
+
+    type Rfn = Box<Fn(f64) -> f64>;
+
+    /// Common set of tests for root-finding algorithms.  In order to satisfy
+    /// various method requirements, it includes 1st and 2nd derivatives as well
+    /// as (expected convergent) initial guesses and bounds.
+    fn make_root_tests() -> Vec<RootTest<Rfn, Rfn, Rfn>> {
+        vec![
+            RootTest {
+                name: "Factored Parabola".to_owned(),
+                f: Box::new(|x| (x - 5.0) * (x - 4.0)),
+                df: Some(Box::new(|x| 2.0 * x - 9.0)),
+                d2f: Some(Box::new(|_| 2.0)),
+                roots: vec![5.0, 4.0],
+                guesses: vec![5.8, 3.8],
+                brackets: vec![Bounds::new(4.5, 5.5), Bounds::new(3.5, 4.5)],
+            },
+            // first example from Wikipedia "Newton's Method" page
+            RootTest {
+                name: "Wikipedia Parabola".to_owned(),
+                f: Box::new(|x| x * x - 612.0),
+                df: Some(Box::new(|x| 2.0 * x)),
+                d2f: Some(Box::new(|_| 2.0)),
+                roots: vec![-24.7386337537, 24.7386337537],
+                guesses: vec![-10.0, 10.0],
+                brackets: vec![Bounds::new(-100.0, 0.0), Bounds::new(0.0, 500.0)],
+            },
+            // second example from Wikipedia "Newton's Method" page
+            RootTest {
+                name: "Wikipedia Trigonometry".to_owned(),
+                f: Box::new(|x| x.cos() - x * x * x),
+                df: Some(Box::new(|x| -x.sin() - 3.0 * x * x)),
+                d2f: Some(Box::new(|x| -x.cos() - 6.0 * x)),
+                roots: vec![0.865474033102],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 10.0)],
+            },
+        ]
+    }
+
     #[test]
     #[should_panic]
     fn test_bisection_no_straddle() {
