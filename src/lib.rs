@@ -13,7 +13,7 @@ impl Bounds {
     }
 
     pub fn middle(&self) -> f64 {
-        self.a + (self.b - self.a) / 2.0
+        self.a + (self.b - self.a) * 0.5
     }
 }
 
