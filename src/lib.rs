@@ -17,9 +17,8 @@ impl Bounds {
     }
 }
 
-/// BracketGenerator emits all root-holding brackets as an iterator.  Internally
-/// it is making repeated calls to first_bracket until the entire bounds are
-/// explored.
+/// BracketGenerator iterates over all root-holding brackets.  Internally it is
+/// making repeated calls to first_bracket until the entire bounds are explored.
 pub struct BracketGenerator<'a, F: 'a> {
     f: &'a F,
     remaining: Option<Bounds>,
@@ -46,12 +45,9 @@ where
     type Item = Bounds;
 
     fn next(&mut self) -> Option<Bounds> {
-        if self.remaining.is_none() {
-            return None;
-        }
-        let mut bounds = self.remaining.clone().expect("remaining bounds");
-
+        let mut bounds = self.remaining.clone()?;
         let result = first_bracket(&self.f, &bounds, self.window_size);
+
         match result {
             None => {
                 self.remaining = None;
