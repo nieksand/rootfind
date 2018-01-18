@@ -61,7 +61,7 @@ where
     }
 }
 
-/// Whether signs of values differ, properly handling integer underflow.
+/// Whether signs differ, properly handling integer underflow.
 fn is_sign_change(lhs: f64, rhs: f64) -> bool {
     lhs.signum() != rhs.signum()
 }
