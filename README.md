@@ -11,10 +11,6 @@ Currently features:
 * Bisection
 * Bracket generation
 
-I made this so I could implement Fukushima's algorithm for geodetic to
-geocentric coordinate transforms.  I will be adding Halley's root finding method
-too, since Fukushima uses that in his updated 2006 paper.
-
 # General Approach
 
 1. Know what you are trying to achieve.
