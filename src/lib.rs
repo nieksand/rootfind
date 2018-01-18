@@ -45,16 +45,16 @@ where
     type Item = Bounds;
 
     fn next(&mut self) -> Option<Bounds> {
-        let mut bounds = self.remaining.clone()?;
-        let result = first_bracket(&self.f, &bounds, self.window_size);
+        let mut search_bounds = self.remaining.clone()?;
+        let result = first_bracket(&self.f, &search_bounds, self.window_size);
 
         match result {
             None => {
                 self.remaining = None;
             }
-            Some(ref bracket) => {
-                bounds.a = bracket.b;
-                self.remaining = Some(bounds);
+            Some(ref found_bracket) => {
+                search_bounds.a = found_bracket.b;
+                self.remaining = Some(search_bounds);
             }
         }
         result
