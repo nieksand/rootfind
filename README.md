@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/nieksand/rootfind.svg?branch=master)](https://travis-ci.org/nieksand/rootfind)
+
 # Root Finding
 
 ***Work in progress.  Not ready for use!***
