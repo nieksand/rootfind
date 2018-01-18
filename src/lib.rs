@@ -46,13 +46,10 @@ where
     type Item = Bounds;
 
     fn next(&mut self) -> Option<Bounds> {
-        let mut bounds;
-        {
-            if self.remaining.is_none() {
-                return None;
-            }
-            bounds = self.remaining.clone().expect("remaining bounds");
+        if self.remaining.is_none() {
+            return None;
         }
+        let mut bounds = self.remaining.clone().expect("remaining bounds");
 
         let result = first_bracket(&self.f, &bounds, self.window_size);
         match result {
