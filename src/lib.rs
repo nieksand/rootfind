@@ -100,7 +100,7 @@ where
 #[derive(Debug)]
 pub enum RootError {
     ZeroDerivative { x: f64 },
-    Singularity { x: f64 },
+    ConvergedOnNonZero { x: f64 },
     IterationLimit { last_x: f64 },
 }
 
@@ -112,6 +112,7 @@ where
     let mut window: Bounds = (*bounds).clone();
     let mut f_a = f(window.a);
 
+    // ensure we started with valid bracket
     assert!(is_sign_change(f_a, f(window.b)));
 
     for _ in 0..max_iter {
@@ -130,7 +131,9 @@ where
             return Ok(window.a);
         }
     }
-    Err(RootError::IterationLimit { last_x: window.a })
+    Err(RootError::IterationLimit {
+        last_x: window.middle(),
+    })
 }
 
 /// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and
@@ -303,7 +306,7 @@ mod tests {
     fn test_bracket_generator_window_negative() {
         let f = |x: f64| x.sin();
         let b = Bounds::new(-10.0, 10.0);
-        let brackets: Vec<Bounds> = BracketGenerator::new(&f, b, -0.1).collect();
+        let _brackets: Vec<Bounds> = BracketGenerator::new(&f, b, -0.1).collect();
     }
 
     #[test]
