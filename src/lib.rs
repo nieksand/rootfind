@@ -299,6 +299,14 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_bracket_generator_window_negative() {
+        let f = |x: f64| x.sin();
+        let b = Bounds::new(-10.0, 10.0);
+        let brackets: Vec<Bounds> = BracketGenerator::new(&f, b, -0.1).collect();
+    }
+
+    #[test]
     fn test_is_sign_change() {
         // easy peasy
         assert_eq!(is_sign_change(-1.0, -1.0), false);
