@@ -1,7 +1,6 @@
 [![Build Status](https://travis-ci.org/nieksand/rootfind.svg?branch=master)](https://travis-ci.org/nieksand/rootfind)
 
 # Root Finding
-
 ***Work in progress.  Not ready for use!***
 
 Root finding functions implemented in Rust.
@@ -13,23 +12,14 @@ Currently features:
 * Bisection
 * Bracket generation
 
-# General Approach
+This package aims to provide robust algorithms for finding real roots of
+univariate functions.
 
-1. Know what you are trying to achieve.
-   1. How much accuracy do you need in your final answer?
-   2. Do you need to trade off accuracy for speed?
-   3. Are there any particular roots your interested in?
-   4. Do you care about complex-valued roots?
-   5. Is there an existing, analytic solution you can use over a numerical one?
+As with most numerical methods, root finding algorithms require that you
+understand your goals, the nature of the input function, the properties of the
+algorithm being used, and more.
 
-2. Understand the function or family of functions you are trying to solve.
-   1. Plot your function or some samples from the family!
-   1. Are they continuous in the region of interest?
-   2. Are there any singularities in the region of interest?
-   3. Is there a possibility of distinct yet closely-spaced roots?  
-      Do you care if they're treated as just one?
-
-...
+Feedback is greatly appreciated.
 
 # Usage
 ...
