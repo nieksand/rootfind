@@ -400,6 +400,15 @@ mod tests {
         assert!(win.is_none());
     }
 
+    #[test]
+    fn test_first_bracket_even_degree() {
+        // root at zero is of even degree (touches but does not cross x-axis).
+        // bracketing won't find that.
+        let f = |x| x * x;
+        let win = first_bracket(&f, &Bounds::new(-4.5, 4.5), 1.0);
+        assert!(win.is_none());
+    }
+
     struct RootTest {
         name: &'static str,
         f: fn(f64) -> f64,
