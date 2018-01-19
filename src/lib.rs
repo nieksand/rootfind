@@ -586,18 +586,14 @@ mod tests {
         }
     }
 
-    /*
-	#[test]
-	fn test_pathology_flatlining() {
+    #[test]
+    fn test_pathology_flatlining() {
+        // f(x)=1/e^(x^100) - 0.5, roots approx -0.996342 and 0.996342
+        let f = |x: f64| x.powi(-100).exp() - 0.5;
 
-		// f(x)=1/e^(x^100) - 0.5, roots approx -0.996342 and 0.996342
-		let f = |x: f64| x.powi(-100).exp() - 0.5;
+        // d/dx = -100e^(-x^100) * x^99
+        let df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
 
-		// d/dx = -100e^(-x^100) * x^99
-		let df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
-
-        let root = newton_raphson(&f, &df, 0.99999, 1e-9, 100).expect("found root");
-        assert!((root - 0.996342).abs() < 1e-6);
-	}
-	*/
+        let _ = newton_raphson(&f, &df, 0.99999, 1e-9, 100).expect_err("no convergence");
+    }
 }
