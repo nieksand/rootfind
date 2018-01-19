@@ -139,11 +139,14 @@ where
 }
 
 /// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and
-/// its first derivative while 'start' indicates the initial guess.
+/// its first derivative while 'start' indicates the initial guess.  The
+/// 'accuracy' bounds how much x_old and x_new may differ and the max
+/// |f(x_final|) before we declare convergence.
 pub fn newton_raphson<F1, F2>(
     f: &F1,
     df: &F2,
     start: f64,
+    accuracy: f64,
     max_iter: usize,
 ) -> Result<f64, RootError>
 where
@@ -151,8 +154,7 @@ where
     F2: Fn(f64) -> f64,
 {
     assert!(start.is_finite());
-
-    let epsilon = 1e-9;
+    assert!(accuracy > 0.0);
 
     let mut x_pre = start;
     let mut x_cur = nr_iteration(f, df, x_pre)?;
@@ -160,9 +162,9 @@ where
 
     loop {
         // convergence criteria
-        if (x_cur - x_pre).abs() < epsilon {
+        if (x_cur - x_pre).abs() < accuracy {
             // possible if df is huge
-            if f(x_cur) > epsilon {
+            if f(x_cur) > accuracy {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
@@ -197,12 +199,14 @@ where
 
 /// Root finding using Halley's method.  The 'f', 'df', and 'd2f' are the
 /// function and its first and second derivatives.  The 'start' indicates the
-/// initial guess.
+/// initial guess.  The 'accuracy' bounds how much x_old and x_new may differ
+/// and the max |f(x_final|) before we declare convergence.
 pub fn halley_method<F1, F2, F3>(
     f: &F1,
     df: &F2,
     d2f: &F3,
     start: f64,
+    accuracy: f64,
     max_iter: usize,
 ) -> Result<f64, RootError>
 where
@@ -211,8 +215,7 @@ where
     F3: Fn(f64) -> f64,
 {
     assert!(start.is_finite());
-
-    let epsilon = 1e-9;
+    assert!(accuracy > 0.0);
 
     let mut x_pre = start;
     let mut x_cur = halley_iteration(f, df, d2f, x_pre)?;
@@ -220,9 +223,9 @@ where
 
     loop {
         // convergence criteria
-        if (x_cur - x_pre).abs() < epsilon {
+        if (x_cur - x_pre).abs() < accuracy {
             // possible if df is huge and d2f near zero
-            if f(x_cur) > epsilon {
+            if f(x_cur) > accuracy {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
@@ -489,14 +492,14 @@ mod tests {
     fn test_newton_nonfinite_start() {
         let f = |x| (x - 5.0) * (x - 4.0);
         let df = |x| 2.0 * x - 9.0;
-        let _ = newton_raphson(&f, &df, std::f64::NAN, 100);
+        let _ = newton_raphson(&f, &df, std::f64::NAN, 1e-9, 100);
     }
 
     #[test]
     fn test_newton_zero_derivative() {
         let f = |_| 2.0;
         let df = |_| 0.0;
-        match newton_raphson(&f, &df, 5.8, 100).expect_err("zero derivative not ok") {
+        match newton_raphson(&f, &df, 5.8, 1e-9, 100).expect_err("zero derivative not ok") {
             RootError::ZeroDerivative { .. } => {
                 return;
             }
@@ -511,10 +514,10 @@ mod tests {
         let f = |x| (x - 5.0) * (x - 4.0);
         let df = |x| 2.0 * x - 9.0;
 
-        let root = newton_raphson(&f, &df, 5.8, 100).expect("found root");
+        let root = newton_raphson(&f, &df, 5.8, 1e-9, 100).expect("found root");
         assert!((root - 5.0).abs() < 1e-9, "wanted root x=5");
 
-        let root = newton_raphson(&f, &df, 3.8, 100).expect("found root");
+        let root = newton_raphson(&f, &df, 3.8, 1e-9, 100).expect("found root");
         assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
     }
 
@@ -523,13 +526,13 @@ mod tests {
         // first example from wikipedia
         let f = |x| x * x - 612.0;
         let df = |x| 2.0 * x;
-        let root = newton_raphson(&f, &df, 10.0, 100).expect("found root");
+        let root = newton_raphson(&f, &df, 10.0, 1e-9, 100).expect("found root");
         assert!((root - 24.7386337537).abs() < 1e-9);
 
         // second example from wikipedia
         let f = |x: f64| x.cos() - x * x * x;
         let df = |x: f64| -x.sin() - 3.0 * x * x;
-        let root = newton_raphson(&f, &df, 0.5, 100).expect("found root");
+        let root = newton_raphson(&f, &df, 0.5, 1e-9, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
     }
 
@@ -539,10 +542,10 @@ mod tests {
         let df = |x| 2.0 * x - 9.0;
         let d2f = |_| 2.0;
 
-        let root = halley_method(&f, &df, &d2f, 5.8, 100).expect("found root");
+        let root = halley_method(&f, &df, &d2f, 5.8, 1e-9, 100).expect("found root");
         assert!((root - 5.0).abs() < 1e-9, "wanted root x=5");
 
-        let root = halley_method(&f, &df, &d2f, 3.8, 100).expect("found root");
+        let root = halley_method(&f, &df, &d2f, 3.8, 1e-9, 100).expect("found root");
         assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
     }
 
@@ -552,14 +555,14 @@ mod tests {
         let f = |x| x * x - 612.0;
         let df = |x| 2.0 * x;
         let d2f = |_| 2.0;
-        let root = halley_method(&f, &df, &d2f, 10.0, 100).expect("found root");
+        let root = halley_method(&f, &df, &d2f, 10.0, 1e-9, 100).expect("found root");
         assert!((root - 24.7386337537).abs() < 1e-9);
 
         // second example from wikipedia
         let f = |x: f64| x.cos() - x * x * x;
         let df = |x: f64| -x.sin() - 3.0 * x * x;
         let d2f = |x: f64| -x.cos() - 6.0 * x;
-        let root = halley_method(&f, &df, &d2f, 0.5, 100).expect("found root");
+        let root = halley_method(&f, &df, &d2f, 0.5, 1e-9, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
     }
 
@@ -568,7 +571,7 @@ mod tests {
         // f(x) = 0.01*e^(1/x)-1
         let f = |x: f64| 0.001 * (1.0 / x).exp() - 1.0;
         let df = |x: f64| -0.001 * (1.0 / x).exp() / (x * x);
-        match newton_raphson(&f, &df, 0.00142, 100).expect_err("microstep fail") {
+        match newton_raphson(&f, &df, 0.00142, 1e-9, 100).expect_err("microstep fail") {
             RootError::ConvergedOnNonZero { .. } => {
                 return;
             }
