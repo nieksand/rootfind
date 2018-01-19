@@ -160,18 +160,16 @@ where
     loop {
         // convergence criteria
         if (x_cur - x_pre).abs() < epsilon {
-            // maybe first derivative is huge
+            // possible if first derivative is huge
             if f(x_cur) > epsilon {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
         }
 
-        // stopping criteria
         if it > max_iter {
             return Err(RootError::IterationLimit { last_x: x_cur });
         }
-
         x_pre = x_cur;
         x_cur = nr_iteration(f, df, x_pre)?;
         it += 1;
