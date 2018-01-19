@@ -16,8 +16,8 @@ This package aims to provide robust algorithms for finding real roots of
 univariate functions.
 
 As with most numerical methods, root finding algorithms require that you
-understand your goals, the nature of the input function, the properties of the
-algorithm being used, and more.
+understand what you're trying to achieve, the nature of the input function, the
+properties of the algorithm being used, and more.
 
 Feedback is greatly appreciated.
 
