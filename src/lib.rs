@@ -100,6 +100,7 @@ where
 #[derive(Debug)]
 pub enum RootError {
     ZeroDerivative { x: f64 },
+    IteratedToNaN { x: f64 },
     ConvergedOnNonZero { x: f64 },
     IterationLimit { last_x: f64 },
 }
@@ -159,6 +160,10 @@ where
     loop {
         // convergence criteria
         if (x_cur - x_pre).abs() < epsilon {
+            // maybe first derivative is huge
+            if f(x_cur) > epsilon {
+                return Err(RootError::ConvergedOnNonZero { x: x_cur });
+            }
             return Ok(x_cur);
         }
 
@@ -184,7 +189,11 @@ where
     if denom == 0.0 {
         return Err(RootError::ZeroDerivative { x });
     }
-    Ok(x - f(x) / denom)
+    let x_new = x - f(x) / denom;
+    if !x_new.is_finite() {
+        return Err(RootError::IteratedToNaN { x });
+    }
+    Ok(x_new)
 }
 
 /// Root finding using Halley's method.  The 'f', 'df', and 'd2f' are the
@@ -213,6 +222,10 @@ where
     loop {
         // convergence criteria
         if (x_cur - x_pre).abs() < epsilon {
+            // maybe first derivative is huge and second derivitive near zero
+            if f(x_cur) > epsilon {
+                return Err(RootError::ConvergedOnNonZero { x: x_cur });
+            }
             return Ok(x_cur);
         }
 
@@ -543,6 +556,21 @@ mod tests {
         let d2f = |x: f64| -x.cos() - 6.0 * x;
         let root = halley_method(&f, &df, &d2f, 0.5, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_pathology_microstep() {
+        // f(x) = 0.01*e^(1/x)-1
+        let f = |x: f64| 0.001 * (1.0 / x).exp() - 1.0;
+        let df = |x: f64| -0.001 * (1.0 / x).exp() / (x * x);
+        match newton_raphson(&f, &df, 0.00142, 100).expect_err("microstep fail") {
+            RootError::ConvergedOnNonZero { .. } => {
+                return;
+            }
+            _ => {
+                assert!(false, "incorrect error type");
+            }
+        }
     }
 
     /*
