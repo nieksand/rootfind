@@ -201,6 +201,13 @@ where
 /// function and its first and second derivatives.  The 'start' indicates the
 /// initial guess.  The 'accuracy' bounds how much x_old and x_new may differ
 /// and the max |f(x_final|) before we declare convergence.
+///
+/// A good overview of the derivation, history, and geometric interpretation of
+/// Halley's method is in:
+///
+/// Scavo, T. R.; Thoo, J. B. (1995). "On the geometry of Halley's method".
+/// American Mathematical Monthly. 102 (5): 417–426.
+///
 pub fn halley_method<F1, F2, F3>(
     f: &F1,
     df: &F2,

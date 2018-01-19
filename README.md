@@ -3,7 +3,7 @@
 # Root Finding
 ***Work in progress.  Not ready for use!***
 
-Root finding functions implemented in Rust.
+Root finding algorithms implemented in Rust.
 
 Currently features:
 
@@ -18,6 +18,18 @@ univariate functions.
 As with most numerical methods, root finding algorithms require that you
 understand what you're trying to achieve, the nature of the input function, the
 properties of the algorithm being used, and more.
+
+The wikipedia page on "Root-finding algorithm" is a reasonable introduction.  
+
+The C++ Boost Algorithms and the Gnu Scientific Library both have more
+implementation oriented overviews:
+
+	http://www.boost.org/doc/libs/1_61_0/libs/math/doc/html/math_toolkit/roots.html
+
+
+
+
+For more implementation oriented views on the subject, the C++ Boost algorithms
 
 Feedback is greatly appreciated.
 
@@ -39,7 +51,6 @@ copyright when it comes to implementation.
 
 The boost algorithms page has a decent collection and overview:
 
-    http://www.boost.org/doc/libs/1_61_0/libs/math/doc/html/math_toolkit/roots.html
 
 # Author
 This was written by Niek Sanders (niek.sanders@gmail.com).
