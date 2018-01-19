@@ -496,6 +496,22 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_newton_accuracy_negative() {
+        let f = |x| (x - 5.0) * (x - 4.0);
+        let df = |x| 2.0 * x - 9.0;
+        let _ = newton_raphson(&f, &df, 42.0, -1e-9, 100);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_newton_accuracy_zero() {
+        let f = |x| (x - 5.0) * (x - 4.0);
+        let df = |x| 2.0 * x - 9.0;
+        let _ = newton_raphson(&f, &df, 42.0, 0.0, 100);
+    }
+
+    #[test]
     fn test_newton_zero_derivative() {
         let f = |_| 2.0;
         let df = |_| 0.0;
@@ -534,6 +550,33 @@ mod tests {
         let df = |x: f64| -x.sin() - 3.0 * x * x;
         let root = newton_raphson(&f, &df, 0.5, 1e-9, 100).expect("found root");
         assert!((root - 0.865474033102).abs() < 1e-9);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_halley_nonfinite_start() {
+        let f = |x: f64| x.sin();
+        let df = |x: f64| x.cos();
+        let d2f = |x: f64| -x.sin();
+        let _ = halley_method(&f, &df, &d2f, std::f64::NAN, 1e-9, 100);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_halley_accuracy_negative() {
+        let f = |x: f64| x.sin();
+        let df = |x: f64| x.cos();
+        let d2f = |x: f64| -x.sin();
+        let _ = halley_method(&f, &df, &d2f, 42.0, -1e-9, 100);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_halley_accuracy_zero() {
+        let f = |x: f64| x.sin();
+        let df = |x: f64| x.cos();
+        let d2f = |x: f64| -x.sin();
+        let _ = halley_method(&f, &df, &d2f, 42.0, 0.0, 100);
     }
 
     #[test]
