@@ -160,7 +160,7 @@ where
     loop {
         // convergence criteria
         if (x_cur - x_pre).abs() < epsilon {
-            // possible if first derivative is huge
+            // possible if df is huge
             if f(x_cur) > epsilon {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
@@ -195,7 +195,7 @@ where
 }
 
 /// Root finding using Halley's method.  The 'f', 'df', and 'd2f' are the
-/// function and it's first and second derivatives.  The 'start' indicates the
+/// function and its first and second derivatives.  The 'start' indicates the
 /// initial guess.
 pub fn halley_method<F1, F2, F3>(
     f: &F1,
@@ -220,18 +220,16 @@ where
     loop {
         // convergence criteria
         if (x_cur - x_pre).abs() < epsilon {
-            // maybe first derivative is huge and second derivitive near zero
+            // possible if df is huge and d2f near zero
             if f(x_cur) > epsilon {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
         }
 
-        // stopping criteria
         if it > max_iter {
             return Err(RootError::IterationLimit { last_x: x_cur });
         }
-
         x_pre = x_cur;
         x_cur = halley_iteration(f, df, d2f, x_pre)?;
         it += 1;
@@ -249,7 +247,15 @@ where
     let df_x = df(x);
     let d2f_x = d2f(x);
 
-    Ok(x - (2.0 * f_x * df_x) / (2.0 * df_x * df_x - f_x * d2f_x))
+    if df_x == 0.0 {
+        return Err(RootError::ZeroDerivative { x });
+    }
+
+    let x_new = x - (2.0 * f_x * df_x) / (2.0 * df_x * df_x - f_x * d2f_x);
+    if !x_new.is_finite() {
+        return Err(RootError::IteratedToNaN { x });
+    }
+    Ok(x_new)
 }
 
 #[cfg(test)]
