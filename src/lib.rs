@@ -400,6 +400,61 @@ mod tests {
         assert!(win.is_none());
     }
 
+    struct RootTest {
+        name: &'static str,
+        f: fn(f64) -> f64,
+        df: fn(f64) -> f64,
+        d2f: fn(f64) -> f64,
+        roots: Vec<f64>,
+        guesses: Vec<f64>,
+        brackets: Vec<Bounds>,
+    }
+
+    fn make_root_tests() -> Vec<RootTest> {
+        vec![
+            RootTest {
+                name: "Factored Parabola",
+                f: |x| (x - 5.0) * (x - 4.0),
+                df: |x| 2.0 * x - 9.0,
+                d2f: |_| 2.0,
+                roots: vec![5.0, 4.0],
+                guesses: vec![5.8, 3.8],
+                brackets: vec![Bounds::new(4.5, 100.0), Bounds::new(-100000.0, 4.01)],
+            },
+            RootTest {
+                name: "Wikipedia Parabola",
+                f: |x| x * x - 612.0,
+                df: |x| 2.0 * x,
+                d2f: |_| 2.0,
+                roots: vec![-24.7386337537, 24.7386337537],
+                guesses: vec![-10.0, 10.0],
+                brackets: vec![Bounds::new(-30.0, 10.0), Bounds::new(10.0, 30.0)],
+            },
+            RootTest {
+                name: "Wikipedia Trigonometry",
+                f: |x| x.cos() - x * x * x,
+                df: |x| -x.sin() - 3. * x * x,
+                d2f: |x| -x.cos() - 6. * x,
+                roots: vec![0.865474033102],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+        ]
+    }
+
+    #[test]
+    fn test_bisection_root_finding() {
+        for t in make_root_tests() {
+            for i in 0..t.roots.len() {
+                let root = bisection(&t.f, &t.brackets[i], 100).expect("found root");
+                assert!(
+                    (root - t.roots[i]).abs() < 1e-9,
+                    format!("{} wanted root x={}", t.name, t.roots[i])
+                );
+            }
+        }
+    }
+
     #[test]
     #[should_panic]
     fn test_bisection_no_straddle() {
@@ -415,27 +470,17 @@ mod tests {
     }
 
     #[test]
-    fn test_bisection_parabola() {
-        let f = |x| (x - 5.0) * (x - 4.0);
-
-        let root = bisection(&f, &Bounds::new(4.5, 100.0), 100).expect("found root");
-        assert!((root - 5.0).abs() < 1e-9, "wanted root x=5");
-
-        let root = bisection(&f, &Bounds::new(-100000.0, 4.01), 100).expect("found root");
-        assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
-    }
-
-    #[test]
-    fn test_bisection_wikipedia() {
-        // first example from wikipedia
-        let f = |x| x * x - 612.0;
-        let root = bisection(&f, &Bounds::new(10.0, 30.0), 100).expect("found root");
-        assert!((root - 24.7386337537).abs() < 1e-9);
-
-        // second example from wikipedia
-        let f = |x: f64| x.cos() - x * x * x;
-        let root = bisection(&f, &Bounds::new(0.0, 1.0), 100).expect("found root");
-        assert!((root - 0.865474033102).abs() < 1e-9);
+    fn test_newton_root_finding() {
+        for t in make_root_tests() {
+            for i in 0..t.roots.len() {
+                let root =
+                    newton_raphson(&t.f, &t.df, t.guesses[i], 1e-9, 100).expect("found root");
+                assert!(
+                    (root - t.roots[i]).abs() < 1e-9,
+                    format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
+                );
+            }
+        }
     }
 
     #[test]
@@ -477,30 +522,17 @@ mod tests {
     }
 
     #[test]
-    fn test_newton_parabola() {
-        let f = |x| (x - 5.0) * (x - 4.0);
-        let df = |x| 2.0 * x - 9.0;
-
-        let root = newton_raphson(&f, &df, 5.8, 1e-9, 100).expect("found root");
-        assert!((root - 5.0).abs() < 1e-9, "wanted root x=5");
-
-        let root = newton_raphson(&f, &df, 3.8, 1e-9, 100).expect("found root");
-        assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
-    }
-
-    #[test]
-    fn test_newton_wikipedia() {
-        // first example from wikipedia
-        let f = |x| x * x - 612.0;
-        let df = |x| 2.0 * x;
-        let root = newton_raphson(&f, &df, 10.0, 1e-9, 100).expect("found root");
-        assert!((root - 24.7386337537).abs() < 1e-9);
-
-        // second example from wikipedia
-        let f = |x: f64| x.cos() - x * x * x;
-        let df = |x: f64| -x.sin() - 3.0 * x * x;
-        let root = newton_raphson(&f, &df, 0.5, 1e-9, 100).expect("found root");
-        assert!((root - 0.865474033102).abs() < 1e-9);
+    fn test_halley_root_finding() {
+        for t in make_root_tests() {
+            for i in 0..t.roots.len() {
+                let root = halley_method(&t.f, &t.df, &t.d2f, t.guesses[i], 1e-9, 100)
+                    .expect("found root");
+                assert!(
+                    (root - t.roots[i]).abs() < 1e-9,
+                    format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
+                );
+            }
+        }
     }
 
     #[test]
@@ -531,36 +563,6 @@ mod tests {
     }
 
     #[test]
-    fn test_halley_parabola() {
-        let f = |x| (x - 5.0) * (x - 4.0);
-        let df = |x| 2.0 * x - 9.0;
-        let d2f = |_| 2.0;
-
-        let root = halley_method(&f, &df, &d2f, 5.8, 1e-9, 100).expect("found root");
-        assert!((root - 5.0).abs() < 1e-9, "wanted root x=5");
-
-        let root = halley_method(&f, &df, &d2f, 3.8, 1e-9, 100).expect("found root");
-        assert!((root - 4.0).abs() < 1e-9, "wanted root x=4");
-    }
-
-    #[test]
-    fn test_halley_wikipedia() {
-        // first example from wikipedia
-        let f = |x| x * x - 612.0;
-        let df = |x| 2.0 * x;
-        let d2f = |_| 2.0;
-        let root = halley_method(&f, &df, &d2f, 10.0, 1e-9, 100).expect("found root");
-        assert!((root - 24.7386337537).abs() < 1e-9);
-
-        // second example from wikipedia
-        let f = |x: f64| x.cos() - x * x * x;
-        let df = |x: f64| -x.sin() - 3.0 * x * x;
-        let d2f = |x: f64| -x.cos() - 6.0 * x;
-        let root = halley_method(&f, &df, &d2f, 0.5, 1e-9, 100).expect("found root");
-        assert!((root - 0.865474033102).abs() < 1e-9);
-    }
-
-    #[test]
     fn test_pathology_microstep() {
         // f(x) = 0.01*e^(1/x)-1
         let f = |x: f64| 0.001 * (1.0 / x).exp() - 1.0;
@@ -585,8 +587,8 @@ mod tests {
 		// d/dx = -100e^(-x^100) * x^99
 		let df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
 
-        let root = newton_raphson(&f, &df, 0.99999, 100).expect("found root");
+        let root = newton_raphson(&f, &df, 0.99999, 1e-9, 100).expect("found root");
         assert!((root - 0.996342).abs() < 1e-6);
 	}
-*/
+	*/
 }
