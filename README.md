@@ -51,6 +51,11 @@ Then in the 'misc' bucket of work:
 2. Flesh out rustdocs and maintain a published version, linked via badge.
 3. Add crates.io version badge.
 
+As expected, this project uses semantic versioning (major.minor.patch).  The
+remaining work mostly falls under 'minor' increments.  When that's all done, I
+would like some external review or feedback before cutting the official 1.0.0
+release.
+
 # Usage
 ...
 
