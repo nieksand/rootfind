@@ -213,7 +213,7 @@ mod tests {
                 brackets: vec![Bounds::new(4.5, 100.0), Bounds::new(-100000.0, 4.01)],
             },
             RootTest {
-                name: "Wikipedia Parabola",
+                name: "Wikipedia NR Parabola",
                 f: |x| x * x - 612.0,
                 df: |x| 2.0 * x,
                 d2f: |_| 2.0,
@@ -222,13 +222,22 @@ mod tests {
                 brackets: vec![Bounds::new(-30.0, 10.0), Bounds::new(10.0, 30.0)],
             },
             RootTest {
-                name: "Wikipedia Trigonometry",
+                name: "Wikipedia NR Trigonometry",
                 f: |x| x.cos() - x * x * x,
                 df: |x| -x.sin() - 3. * x * x,
                 d2f: |x| -x.cos() - 6. * x,
                 roots: vec![0.865474033102],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Wikipedia Bisection Cubic",
+                f: |x| x*x*x - x - 2.0,
+                df: |x| 3.0*x*x - 1.0,
+                d2f: |x| 6.0*x,
+                roots: vec![1.52137970680457],
+                guesses: vec![1.0],
+                brackets: vec![Bounds::new(1.0, 2.0),],
             },
         ]
     }
@@ -240,7 +249,7 @@ mod tests {
                 let root = bisection(&t.f, &t.brackets[i], 100).expect("found root");
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
-                    format!("{} wanted root x={}", t.name, t.roots[i])
+                    format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
                 );
             }
         }
