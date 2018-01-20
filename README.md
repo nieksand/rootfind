@@ -60,20 +60,19 @@ release.
 ...
 
 # References
-A good introduction for Newton-Raphson is in:
+A reasonable introduction to root finding can be found in:
 
-    Richard W Hamming. 1986. Numerical Methods for Scientists and Engineers 
-    (2nd Ed.). Dover Publications, Inc., New York, NY, USA.
+Recktenwald, G. W. (2000). Numerical methods with MATLAB: implementations and 
+applications. Upper Saddle River, NJ: Prentice Hall.
 
-The "Root-finding algorithm" wikipedia page is good topic intro.
+The Wikipedia page on "Root-finding algorithm" is also a good overview.  The
+quality of various algorithm-specific pages varies dramatically.
 
-The "Newton's method" wikipedia page is also quite comprehensive.
+I have also found both the C++ Boost and Gnu Scientific Library root-finding
+implementations and documentation to be quite helpful.
 
-The Numerical Recipes book also has a strong treatment, but it is encumbered by
-copyright when it comes to implementation.
-
-The boost algorithms page has a decent collection and overview:
-
+The Numerical Recipes book covers implementation in detail and is available to
+read online, but the implementations are encumbered by copyright.
 
 # Author
 This was written by Niek Sanders (niek.sanders@gmail.com).
