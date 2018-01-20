@@ -1,7 +1,7 @@
 [package]
 name = "rootfind"
 description = "Root-finding algorithms"
-version = "0.1.0"
+version = "0.1.1"
 
 keywords = ["root-finding", "roots", "newton", "bisection", "numerics"]
 categories = ["algorithms", "science"]
