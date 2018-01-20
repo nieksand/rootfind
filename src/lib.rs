@@ -138,7 +138,14 @@ where
     })
 }
 
-/// Root finding using Newton-Raphson.  The 'f' and 'df' are the function and
+/// Root finding using Newton-Raphson.  For guesses sufficiently close to the
+/// root this algorithm has quadratic convergence.
+///
+/// This algorithm requires the first derivative of f(x).  If the second
+/// derivative is also available, consider Halley's method.  If no analytically
+/// computed derivatives are available, consider Brent-Decker.
+///
+/// The 'f' and 'df' are the function and
 /// its first derivative while 'start' indicates the initial guess.  The
 /// 'accuracy' bounds how much x_old and x_new may differ and the max
 /// |f(x_final|) before we declare convergence.
@@ -197,10 +204,17 @@ where
     Ok(x_new)
 }
 
-/// Root finding using Halley's method.  The 'f', 'df', and 'd2f' are the
-/// function and its first and second derivatives.  The 'start' indicates the
-/// initial guess.  The 'accuracy' bounds how much x_old and x_new may differ
-/// and the max |f(x_final|) before we declare convergence.
+/// Root finding using Halley's method.  For guesses sufficiently close to the
+/// root this algorithm has cubic convergence.
+///
+/// This algorithm requires both the first and second derivatives of f(x).  If
+/// only the first derivative is available, consider Newton-Raphson.  If no
+/// analytically computed derivatives are available, consider Brent-Decker.
+///
+/// The 'f', 'df', and 'd2f' are the function and its first and second
+/// derivatives.  The 'start' indicates the initial guess.  The 'accuracy'
+/// bounds how much x_old and x_new may differ and the max |f(x_final|) before
+/// we declare convergence.
 ///
 /// A good overview of the derivation, history, and geometric interpretation of
 /// Halley's method is in:
