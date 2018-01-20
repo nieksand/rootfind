@@ -28,7 +28,7 @@ In terms of algorithms, there are three major things missing:
 
 1. "Safe" variants of Newton-Raphson and Halley's Method which hybridize with a 
    bracketing method to ensure global convergence.
-2. Brent-Decker implementation for when no analytic derivates are available.
+2. Brent-Decker implementation for when no analytic derivatives are available.
 3. Specialized routines for solving roots of Polynomials.
 
 In terms of design, remaining work includes:
