@@ -21,17 +21,35 @@ properties of the algorithm being used, and more.
 
 The wikipedia page on "Root-finding algorithm" is a reasonable introduction.  
 
-The C++ Boost Algorithms and the Gnu Scientific Library both have more
-implementation oriented overviews:
-
-	http://www.boost.org/doc/libs/1_61_0/libs/math/doc/html/math_toolkit/roots.html
-
-
-
-
-For more implementation oriented views on the subject, the C++ Boost algorithms
-
 Feedback is greatly appreciated.
+
+# Remaining Work
+In terms of algorithms, there are three major things missing:
+
+1. "Safe" variants of Newton-Raphson and Halley's Method which hybridize with a 
+   bracketing method to ensure global convergence.
+2. Brent-Decker implementation for when no analytic derivates are available.
+3. Specialized routines for solving roots of Polynomials.
+
+In terms of design, remaining work includes:
+
+1. Supplying comprehensive options for determining convergence.
+2. Allowing visibility into the solver state as it runs.
+3. Potentially allowing optimized Newton-Raphson where the fraction f(x)/f'(x) 
+   is supplied directly rather than being computed at runtime.  Cancellation of 
+   terms provides an opportunity for performance optimization.
+
+There are also two projects I want to cross-validate both implementations and
+overall design against.  Specifically the C++ Boost Root Finders and the ones
+supplied in the Gnu Scientific Library.  The Numerical Recipes book also has
+solid implementations, but I want to avoid copyright issues so I'm mostly
+staying away from it.
+
+Then in the 'misc' bucket of work:
+
+1. Flesh out README document to include working examples.
+2. Flesh out rustdocs and maintain a published version, linked via badge.
+3. Add crates.io version badge.
 
 # Usage
 ...
