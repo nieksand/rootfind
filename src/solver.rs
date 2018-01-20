@@ -9,8 +9,8 @@ pub enum RootError {
     IterationLimit { last_x: f64 },
 }
 
-/// Root finding via Bisection Method.  It converges globally but is relatively
-/// slow.
+/// Root finding via Bisection Method.  It always converges given a valid
+/// starting bracket, but the speed of convergence is linear.
 pub fn bisection<F>(f: &F, bounds: &Bounds, max_iter: usize) -> Result<f64, RootError>
 where
     F: Fn(f64) -> f64,
