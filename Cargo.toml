@@ -1,6 +1,14 @@
 [package]
 name = "rootfind"
+description = "Root-finding algorithms"
 version = "0.1.0"
+
+keywords = ["root-finding", "roots", "newton", "bisection", "numerics"]
+categories = ["algorithms", "science"]
+
 authors = ["Niek Sanders <niek.sanders@gmail.com>"]
+license = "Unlicense"
+readme = "README.md"
+repository = "https://github.com/nieksand/rootfind/"
 
 [dependencies]
