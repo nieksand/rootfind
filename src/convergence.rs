@@ -54,6 +54,19 @@ impl IsConverged for FnResidual {
     }
 }
 
+/// DualCriteria combines two IsConverged implementations, requiring both to be
+/// true for convergence.
+pub struct DualCriteria<'a, C1: 'a + IsConverged, C2: 'a + IsConverged> {
+    c1: &'a C1,
+    c2: &'a C2,
+}
+
+impl<'a, C1: IsConverged, C2: IsConverged> IsConverged for DualCriteria<'a, C1, C2> {
+    fn is_converged(&self, x_pre: f64, x_cur: f64, f_cur: f64) -> bool {
+        self.c1.is_converged(x_pre, x_cur, f_cur) && self.c2.is_converged(x_pre, x_cur, f_cur)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -106,4 +119,25 @@ mod tests {
     fn test_fn_residual_epsabs_nan() {
         let _ = FnResidual::new(f64::NAN);
     }
+
+    #[test]
+    fn test_dual_convergence() {
+        let c1 = FnResidual::new(1e-4);
+        let c2 = DeltaX::new(1e-9);
+        let c = DualCriteria { c1: &c1, c2: &c2 };
+
+        // neither c1 nor c2
+        let x_0 = -3.7;
+        assert_eq!(false, c.is_converged(x_0, x_0 + 1.0, 113456.987));
+
+        // c1 but not c2
+        assert_eq!(false, c.is_converged(x_0, x_0 + 5e-10, 113456.987));
+
+        // c2 but not c1
+        assert_eq!(false, c.is_converged(x_0, x_0 + 1.0, 0.00008));
+
+        // both c1 and c2
+        assert_eq!(true, c.is_converged(0.0, 1e-10, 0.00008));
+    }
+
 }
