@@ -9,7 +9,7 @@ pub trait IsConverged {
 /// SequenceDelta converges when the distance along the x-axis between
 /// successive iterations becomes smaller than 'epsilon_abs'.
 ///
-/// The test_pathology_flatlining() shows a situation where this claims
+/// The test_pathology_microstep() shows a situation where this claims
 /// convergence even though the solver is still far from the actual root.
 /// Specifically, for a method like Newton-Raphson an massive first derivative
 /// means we only take a small step along the a-axis even if we are far from
