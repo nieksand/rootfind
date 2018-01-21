@@ -6,26 +6,26 @@ pub trait IsConverged {
     fn is_converged(&self, x_pre: f64, x_cur: f64, f_cur: f64) -> bool;
 }
 
-/// XDelta converges when the distance along the x-axis between successive
+/// DeltaX converges when the distance along the x-axis between successive
 /// iterations becomes smaller than 'epsilon_abs'.
 ///
 /// The test_pathology_microstep() shows a situation where this converges
 /// prematurely.  Specifically, for a method like Newton-Raphson, a massive
 /// first derivative means taking only a small step along the x-axis even when
 /// far from the actual root.
-pub struct XDelta {
+pub struct DeltaX {
     epsilon_abs: f64,
 }
 
-impl XDelta {
-    pub fn new(epsilon_abs: f64) -> XDelta {
+impl DeltaX {
+    pub fn new(epsilon_abs: f64) -> DeltaX {
         assert!(epsilon_abs > 0.0);
         assert!(epsilon_abs.is_finite());
-        XDelta { epsilon_abs }
+        DeltaX { epsilon_abs }
     }
 }
 
-impl IsConverged for XDelta {
+impl IsConverged for DeltaX {
     fn is_converged(&self, x_pre: f64, x_cur: f64, _f_cur: f64) -> bool {
         (x_pre - x_cur).abs() < self.epsilon_abs
     }
@@ -60,9 +60,9 @@ mod tests {
     use std::f64;
 
     #[test]
-    fn test_x_delta_convergence() {
+    fn test_delta_x_convergence() {
         // too far apart
-        let c = XDelta::new(1e-9);
+        let c = DeltaX::new(1e-9);
         let x_0 = 10.2;
         assert_eq!(false, c.is_converged(x_0, x_0 + 1e-8, 10.0));
 
@@ -72,20 +72,20 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_x_delta_epsabs_zero() {
-        let _ = XDelta::new(0.0);
+    fn test_delta_x_epsabs_zero() {
+        let _ = DeltaX::new(0.0);
     }
 
     #[test]
     #[should_panic]
-    fn test_x_delta_epsabs_negative() {
-        let _ = XDelta::new(-1.0);
+    fn test_delta_x_epsabs_negative() {
+        let _ = DeltaX::new(-1.0);
     }
 
     #[test]
     #[should_panic]
-    fn test_x_delta_epsabs_nan() {
-        let _ = XDelta::new(f64::NAN);
+    fn test_delta_x_epsabs_nan() {
+        let _ = DeltaX::new(f64::NAN);
     }
 
     #[test]
