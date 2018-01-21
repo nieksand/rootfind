@@ -10,7 +10,7 @@ pub trait IsConverged {
 /// successive iterations becomes smaller than 'epsilon_abs'.
 ///
 /// The test_pathology_flatlining() shows a situation where this claims
-/// convergence even through the solver is still far from the actual root.
+/// convergence even though the solver is still far from the actual root.
 /// Specifically, for a method like Newton-Raphson an massive first derivative
 /// means we only take a small step along the a-axis even if we are far from
 /// the actual root.
