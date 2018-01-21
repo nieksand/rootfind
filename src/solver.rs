@@ -69,13 +69,13 @@ where
     assert!(start.is_finite());
 
     let mut x_pre = start;
-    let mut x_cur = nr_iteration(f, df, x_pre)?;
+    let (mut x_cur, mut f_cur) = nr_iteration(f, df, x_pre)?;
     let mut it = 1;
 
     loop {
-        if finish.is_converged(x_pre, x_cur, f64::NAN) {
+        if finish.is_converged(x_pre, x_cur, f_cur) {
             // possible if df is huge
-            if f(x_cur) > 1e-6 {
+            if f_cur > 1e-6 {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
@@ -85,14 +85,16 @@ where
             return Err(RootError::IterationLimit { last_x: x_cur });
         }
         x_pre = x_cur;
-        x_cur = nr_iteration(f, df, x_pre)?;
+        let t = nr_iteration(f, df, x_pre)?;
+        x_cur = t.0;
+        f_cur = t.1;
         it += 1;
     }
 }
 
 /// Evaluate a single iteration for Newton's method.  Returns an error if the
-/// derivative evaluates to zero.
-fn nr_iteration<F1, F2>(f: &F1, df: &F2, x: f64) -> Result<f64, RootError>
+/// derivative evaluates to zero.  Returns (x_new, f(x_new)) otherwise.
+fn nr_iteration<F1, F2>(f: &F1, df: &F2, x: f64) -> Result<(f64, f64), RootError>
 where
     F1: Fn(f64) -> f64,
     F2: Fn(f64) -> f64,
@@ -101,11 +103,12 @@ where
     if denom == 0.0 {
         return Err(RootError::ZeroDerivative { x });
     }
-    let x_new = x - f(x) / denom;
+    let f_x = f(x);
+    let x_new = x - f_x / denom;
     if !x_new.is_finite() {
         return Err(RootError::IteratedToNaN { x });
     }
-    Ok(x_new)
+    Ok((x_new, f_x))
 }
 
 /// Root finding using Halley's method.  For guesses sufficiently close to the
@@ -143,13 +146,13 @@ where
     assert!(start.is_finite());
 
     let mut x_pre = start;
-    let mut x_cur = halley_iteration(f, df, d2f, x_pre)?;
+    let (mut x_cur, mut f_cur) = halley_iteration(f, df, d2f, x_pre)?;
     let mut it = 1;
 
     loop {
-        if finish.is_converged(x_pre, x_cur, f64::NAN) {
+        if finish.is_converged(x_pre, x_cur, f_cur) {
             // possible if df is huge and d2f near zero
-            if f(x_cur) > 1e-6 {
+            if f_cur > 1e-6 {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
@@ -159,13 +162,16 @@ where
             return Err(RootError::IterationLimit { last_x: x_cur });
         }
         x_pre = x_cur;
-        x_cur = halley_iteration(f, df, d2f, x_pre)?;
+        let t = halley_iteration(f, df, d2f, x_pre)?;
+        x_cur = t.0;
+        f_cur = t.1;
         it += 1;
     }
 }
 
-/// Evaluate a single iteration for Halley's method.
-fn halley_iteration<F1, F2, F3>(f: &F1, df: &F2, d2f: &F3, x: f64) -> Result<f64, RootError>
+/// Evaluate a single iteration for Halley's method.  Returns (x_new, f(x_new))
+/// on success.
+fn halley_iteration<F1, F2, F3>(f: &F1, df: &F2, d2f: &F3, x: f64) -> Result<(f64, f64), RootError>
 where
     F1: Fn(f64) -> f64,
     F2: Fn(f64) -> f64,
@@ -183,7 +189,7 @@ where
     if !x_new.is_finite() {
         return Err(RootError::IteratedToNaN { x });
     }
-    Ok(x_new)
+    Ok((x_new, f_x))
 }
 
 #[cfg(test)]
