@@ -15,28 +15,30 @@ Currently features:
 This package aims to provide robust algorithms for finding real roots of
 univariate functions.
 
+Custom convergence criteria can be supplied by the IsConverged trait.  Some
+reasonable canned implementations are provided.
+
 As with most numerical methods, root finding algorithms require that you
 understand what you're trying to achieve, the nature of the input function, the
 properties of the algorithm being used, and more.
 
-The wikipedia page on "Root-finding algorithm" is a reasonable introduction.  
+The wikipedia page on "Root-finding algorithm" is a reasonable introduction.
 
 Feedback is greatly appreciated.
 
 # Remaining Work
 In terms of algorithms, there are three major things missing:
 
-1. "Safe" variants of Newton-Raphson and Halley's Method which hybridize with a 
+1. "Safe" variants of Newton-Raphson and Halley's Method which hybridize with a
    bracketing method to ensure global convergence.
 2. Brent-Decker implementation for when no analytic derivatives are available.
 3. Specialized routines for solving roots of Polynomials.
 
 In terms of design, remaining work includes:
 
-1. Supplying comprehensive options for determining convergence.
-2. Allowing visibility into the solver state as it runs.
-3. Potentially allowing optimized Newton-Raphson where the fraction f(x)/f'(x) 
-   is supplied directly rather than being computed at runtime.  Cancellation of 
+1. Allowing visibility into the solver state as it runs.
+2. Potentially allowing optimized Newton-Raphson where the fraction f(x)/f'(x)
+   is supplied directly rather than being computed at runtime.  Cancellation of
    terms provides an opportunity for performance optimization.
 
 There are also two projects I want to cross-validate both implementations and
@@ -62,7 +64,7 @@ release.
 # References
 A reasonable introduction to root finding can be found in:
 
-Recktenwald, G. W. (2000). Numerical methods with MATLAB: implementations and 
+Recktenwald, G. W. (2000). Numerical methods with MATLAB: implementations and
 applications. Upper Saddle River, NJ: Prentice Hall.
 
 The Wikipedia page on "Root-finding algorithm" is also a good overview.  The
