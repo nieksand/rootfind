@@ -232,12 +232,12 @@ mod tests {
             },
             RootTest {
                 name: "Wikipedia Bisection Cubic",
-                f: |x| x*x*x - x - 2.0,
-                df: |x| 3.0*x*x - 1.0,
-                d2f: |x| 6.0*x,
+                f: |x| x * x * x - x - 2.0,
+                df: |x| 3.0 * x * x - 1.0,
+                d2f: |x| 6.0 * x,
                 roots: vec![1.52137970680457],
                 guesses: vec![1.0],
-                brackets: vec![Bounds::new(1.0, 2.0),],
+                brackets: vec![Bounds::new(1.0, 2.0)],
             },
         ]
     }
