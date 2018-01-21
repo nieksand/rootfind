@@ -189,7 +189,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-	use convergence::SequenceDelta;
+    use convergence::SequenceDelta;
 
     struct RootTest {
         name: &'static str,
