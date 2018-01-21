@@ -6,26 +6,26 @@ pub trait IsConverged {
     fn is_converged(&self, x_pre: f64, x_cur: f64, f_cur: f64) -> bool;
 }
 
-/// SequenceDelta converges when the distance along the x-axis between
-/// successive iterations becomes smaller than 'epsilon_abs'.
+/// XDelta converges when the distance along the x-axis between successive
+/// iterations becomes smaller than 'epsilon_abs'.
 ///
 /// The test_pathology_microstep() shows a situation where this converges
-/// prematurely.  Specifically, for a method like Newton-Raphson, a massive 
-/// first derivative means taking only a small step along the x-axis even when 
+/// prematurely.  Specifically, for a method like Newton-Raphson, a massive
+/// first derivative means taking only a small step along the x-axis even when
 /// far from the actual root.
-pub struct SequenceDelta {
+pub struct XDelta {
     epsilon_abs: f64,
 }
 
-impl SequenceDelta {
-    pub fn new(epsilon_abs: f64) -> SequenceDelta {
+impl XDelta {
+    pub fn new(epsilon_abs: f64) -> XDelta {
         assert!(epsilon_abs > 0.0);
         assert!(epsilon_abs.is_finite());
-        SequenceDelta { epsilon_abs }
+        XDelta { epsilon_abs }
     }
 }
 
-impl IsConverged for SequenceDelta {
+impl IsConverged for XDelta {
     fn is_converged(&self, x_pre: f64, x_cur: f64, _f_cur: f64) -> bool {
         (x_pre - x_cur).abs() < self.epsilon_abs
     }
@@ -60,9 +60,9 @@ mod tests {
     use std::f64;
 
     #[test]
-    fn test_sequence_delta_convergence() {
+    fn test_x_delta_convergence() {
         // too far apart
-        let c = SequenceDelta::new(1e-9);
+        let c = XDelta::new(1e-9);
         let x_0 = 10.2;
         assert_eq!(false, c.is_converged(x_0, x_0 + 1e-8, 10.0));
 
@@ -72,20 +72,20 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_sequence_delta_epsabs_zero() {
-        let _ = SequenceDelta::new(0.0);
+    fn test_x_delta_epsabs_zero() {
+        let _ = XDelta::new(0.0);
     }
 
     #[test]
     #[should_panic]
-    fn test_sequence_delta_epsabs_negative() {
-        let _ = SequenceDelta::new(-1.0);
+    fn test_x_delta_epsabs_negative() {
+        let _ = XDelta::new(-1.0);
     }
 
     #[test]
     #[should_panic]
-    fn test_sequence_delta_epsabs_nan() {
-        let _ = SequenceDelta::new(f64::NAN);
+    fn test_x_delta_epsabs_nan() {
+        let _ = XDelta::new(f64::NAN);
     }
 
     #[test]

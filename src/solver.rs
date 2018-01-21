@@ -189,7 +189,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use convergence::SequenceDelta;
+    use convergence::XDelta;
 
     struct RootTest {
         name: &'static str,
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_newton_root_finding() {
-        let conv = SequenceDelta::new(1e-9);
+        let conv = XDelta::new(1e-9);
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let root =
@@ -289,7 +289,7 @@ mod tests {
     fn test_newton_nonfinite_start() {
         let f = |x| (x - 5.0) * (x - 4.0);
         let df = |x| 2.0 * x - 9.0;
-        let conv = SequenceDelta::new(1e-9);
+        let conv = XDelta::new(1e-9);
         let _ = newton_raphson(&f, &df, f64::NAN, &conv, 100);
     }
 
@@ -297,7 +297,7 @@ mod tests {
     fn test_newton_zero_derivative() {
         let f = |_| 2.0;
         let df = |_| 0.0;
-        let conv = SequenceDelta::new(1e-9);
+        let conv = XDelta::new(1e-9);
         match newton_raphson(&f, &df, 5.8, &conv, 100).expect_err("zero derivative not ok") {
             RootError::ZeroDerivative { .. } => {
                 return;
@@ -310,7 +310,7 @@ mod tests {
 
     #[test]
     fn test_halley_root_finding() {
-        let conv = SequenceDelta::new(1e-9);
+        let conv = XDelta::new(1e-9);
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let root = halley_method(&t.f, &t.df, &t.d2f, t.guesses[i], &conv, 100)
@@ -329,7 +329,7 @@ mod tests {
         let f = |x: f64| x.sin();
         let df = |x: f64| x.cos();
         let d2f = |x: f64| -x.sin();
-        let conv = SequenceDelta::new(1e-9);
+        let conv = XDelta::new(1e-9);
         let _ = halley_method(&f, &df, &d2f, f64::NAN, &conv, 100);
     }
 
@@ -339,7 +339,7 @@ mod tests {
         let f = |x: f64| 0.001 * (1.0 / x).exp() - 1.0;
         let df = |x: f64| -0.001 * (1.0 / x).exp() / (x * x);
 
-        let conv = SequenceDelta::new(1e-9);
+        let conv = XDelta::new(1e-9);
         match newton_raphson(&f, &df, 0.00142, &conv, 100).expect_err("microstep fail") {
             RootError::ConvergedOnNonZero { .. } => {
                 return;
@@ -358,7 +358,7 @@ mod tests {
         // d/dx = -100e^(-x^100) * x^99
         let df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
 
-        let conv = SequenceDelta::new(1e-9);
+        let conv = XDelta::new(1e-9);
         let _ = newton_raphson(&f, &df, 0.99999, &conv, 100).expect_err("no convergence");
     }
 }
