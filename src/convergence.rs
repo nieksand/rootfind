@@ -9,11 +9,10 @@ pub trait IsConverged {
 /// SequenceDelta converges when the distance along the x-axis between
 /// successive iterations becomes smaller than 'epsilon_abs'.
 ///
-/// The test_pathology_microstep() shows a situation where this claims
-/// convergence even though the solver is still far from the actual root.
-/// Specifically, for a method like Newton-Raphson an massive first derivative
-/// means we only take a small step along the a-axis even if we are far from
-/// the actual root.
+/// The test_pathology_microstep() shows a situation where this converges even
+/// though the solver is still far from the actual root.  Specifically, for a
+/// method like Newton-Raphson, a massive first derivative means taking only a
+/// small step along the x-axis even when far from the actual root.
 pub struct SequenceDelta {
     epsilon_abs: f64,
 }
@@ -35,7 +34,7 @@ impl IsConverged for SequenceDelta {
 /// FnResidual converges when the residual is small: |f(x_cur)| < epsilon_abs.
 ///
 /// Be aware that convergence can happen far from the actual root.  For example,
-/// f(x)=-1e-7x+0.01 has the root at 100000 but with an epsilon_abs of 1e-3 we
+/// f(x)=-1e-7x+0.01 has the root at 100000, but with an epsilon_abs of 1e-3 we
 /// would converge anywhere in the range [90000, 110000].
 pub struct FnResidual {
     epsilon_abs: f64,
