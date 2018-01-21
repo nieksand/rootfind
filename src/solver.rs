@@ -1,5 +1,6 @@
 use std::f64;
 use bracket::{is_sign_change, Bounds};
+use convergence::IsConverged;
 
 #[derive(Debug)]
 pub enum RootError {
@@ -53,29 +54,28 @@ where
 /// its first derivative while 'start' indicates the initial guess.  The
 /// 'accuracy' bounds how much x_old and x_new may differ and the max
 /// |f(x_final|) before we declare convergence.
-pub fn newton_raphson<F1, F2>(
+pub fn newton_raphson<F1, F2, C>(
     f: &F1,
     df: &F2,
     start: f64,
-    accuracy: f64,
+    finish: &C,
     max_iter: usize,
 ) -> Result<f64, RootError>
 where
     F1: Fn(f64) -> f64,
     F2: Fn(f64) -> f64,
+    C: IsConverged,
 {
     assert!(start.is_finite());
-    assert!(accuracy > 0.0);
 
     let mut x_pre = start;
     let mut x_cur = nr_iteration(f, df, x_pre)?;
     let mut it = 1;
 
     loop {
-        // convergence criteria
-        if (x_cur - x_pre).abs() < accuracy {
+        if finish.is_converged(x_pre, x_cur, f64::NAN) {
             // possible if df is huge
-            if f(x_cur) > accuracy {
+            if f(x_cur) > 1e-6 {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
@@ -126,31 +126,30 @@ where
 /// Scavo, T. R.; Thoo, J. B. (1995). "On the geometry of Halley's method".
 /// American Mathematical Monthly. 102 (5): 417–426.
 ///
-pub fn halley_method<F1, F2, F3>(
+pub fn halley_method<F1, F2, F3, C>(
     f: &F1,
     df: &F2,
     d2f: &F3,
     start: f64,
-    accuracy: f64,
+    finish: &C,
     max_iter: usize,
 ) -> Result<f64, RootError>
 where
     F1: Fn(f64) -> f64,
     F2: Fn(f64) -> f64,
     F3: Fn(f64) -> f64,
+    C: IsConverged,
 {
     assert!(start.is_finite());
-    assert!(accuracy > 0.0);
 
     let mut x_pre = start;
     let mut x_cur = halley_iteration(f, df, d2f, x_pre)?;
     let mut it = 1;
 
     loop {
-        // convergence criteria
-        if (x_cur - x_pre).abs() < accuracy {
+        if finish.is_converged(x_pre, x_cur, f64::NAN) {
             // possible if df is huge and d2f near zero
-            if f(x_cur) > accuracy {
+            if f(x_cur) > 1e-6 {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
@@ -190,6 +189,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+	use convergence::SequenceDelta;
 
     struct RootTest {
         name: &'static str,
@@ -271,10 +271,11 @@ mod tests {
 
     #[test]
     fn test_newton_root_finding() {
+        let conv = SequenceDelta::new(1e-9);
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let root =
-                    newton_raphson(&t.f, &t.df, t.guesses[i], 1e-9, 100).expect("found root");
+                    newton_raphson(&t.f, &t.df, t.guesses[i], &conv, 100).expect("found root");
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
@@ -288,30 +289,16 @@ mod tests {
     fn test_newton_nonfinite_start() {
         let f = |x| (x - 5.0) * (x - 4.0);
         let df = |x| 2.0 * x - 9.0;
-        let _ = newton_raphson(&f, &df, f64::NAN, 1e-9, 100);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_newton_accuracy_negative() {
-        let f = |x| (x - 5.0) * (x - 4.0);
-        let df = |x| 2.0 * x - 9.0;
-        let _ = newton_raphson(&f, &df, 42.0, -1e-9, 100);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_newton_accuracy_zero() {
-        let f = |x| (x - 5.0) * (x - 4.0);
-        let df = |x| 2.0 * x - 9.0;
-        let _ = newton_raphson(&f, &df, 42.0, 0.0, 100);
+        let conv = SequenceDelta::new(1e-9);
+        let _ = newton_raphson(&f, &df, f64::NAN, &conv, 100);
     }
 
     #[test]
     fn test_newton_zero_derivative() {
         let f = |_| 2.0;
         let df = |_| 0.0;
-        match newton_raphson(&f, &df, 5.8, 1e-9, 100).expect_err("zero derivative not ok") {
+        let conv = SequenceDelta::new(1e-9);
+        match newton_raphson(&f, &df, 5.8, &conv, 100).expect_err("zero derivative not ok") {
             RootError::ZeroDerivative { .. } => {
                 return;
             }
@@ -323,9 +310,10 @@ mod tests {
 
     #[test]
     fn test_halley_root_finding() {
+        let conv = SequenceDelta::new(1e-9);
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let root = halley_method(&t.f, &t.df, &t.d2f, t.guesses[i], 1e-9, 100)
+                let root = halley_method(&t.f, &t.df, &t.d2f, t.guesses[i], &conv, 100)
                     .expect("found root");
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
@@ -341,25 +329,8 @@ mod tests {
         let f = |x: f64| x.sin();
         let df = |x: f64| x.cos();
         let d2f = |x: f64| -x.sin();
-        let _ = halley_method(&f, &df, &d2f, f64::NAN, 1e-9, 100);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_halley_accuracy_negative() {
-        let f = |x: f64| x.sin();
-        let df = |x: f64| x.cos();
-        let d2f = |x: f64| -x.sin();
-        let _ = halley_method(&f, &df, &d2f, 42.0, -1e-9, 100);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_halley_accuracy_zero() {
-        let f = |x: f64| x.sin();
-        let df = |x: f64| x.cos();
-        let d2f = |x: f64| -x.sin();
-        let _ = halley_method(&f, &df, &d2f, 42.0, 0.0, 100);
+        let conv = SequenceDelta::new(1e-9);
+        let _ = halley_method(&f, &df, &d2f, f64::NAN, &conv, 100);
     }
 
     #[test]
@@ -367,7 +338,9 @@ mod tests {
         // f(x) = 0.01*e^(1/x)-1
         let f = |x: f64| 0.001 * (1.0 / x).exp() - 1.0;
         let df = |x: f64| -0.001 * (1.0 / x).exp() / (x * x);
-        match newton_raphson(&f, &df, 0.00142, 1e-9, 100).expect_err("microstep fail") {
+
+        let conv = SequenceDelta::new(1e-9);
+        match newton_raphson(&f, &df, 0.00142, &conv, 100).expect_err("microstep fail") {
             RootError::ConvergedOnNonZero { .. } => {
                 return;
             }
@@ -385,6 +358,7 @@ mod tests {
         // d/dx = -100e^(-x^100) * x^99
         let df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
 
-        let _ = newton_raphson(&f, &df, 0.99999, 1e-9, 100).expect_err("no convergence");
+        let conv = SequenceDelta::new(1e-9);
+        let _ = newton_raphson(&f, &df, 0.99999, &conv, 100).expect_err("no convergence");
     }
 }
