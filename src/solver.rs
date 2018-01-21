@@ -152,7 +152,7 @@ where
     loop {
         if finish.is_converged(x_pre, x_cur, f_cur) {
             // possible if df is huge and d2f near zero
-            if f(x_cur) > 1e-6 {
+            if f_cur > 1e-6 {
                 return Err(RootError::ConvergedOnNonZero { x: x_cur });
             }
             return Ok(x_cur);
