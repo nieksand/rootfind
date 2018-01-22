@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/nieksand/rootfind.svg?branch=master)](https://travis-ci.org/nieksand/rootfind)
+[![Build Status](https://travis-ci.org/nieksand/rootfind.svg?branch=master)](https://travis-ci.org/nieksand/rootfind) 
+[![crates.io](https://img.shields.io/crates/v/rootfind.svg)](https://crates.io/crates/rootfind)
 
 # Root Finding
 ***Work in progress.  Not ready for use!***
