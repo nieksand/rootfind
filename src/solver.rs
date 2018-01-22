@@ -6,7 +6,6 @@ use convergence::IsConverged;
 pub enum RootError {
     ZeroDerivative { x: f64 },
     IteratedToNaN { x: f64 },
-    ConvergedOnNonZero { x: f64 },
     IterationLimit { last_x: f64 },
 }
 
@@ -74,10 +73,6 @@ where
 
     loop {
         if finish.is_converged(x_pre, x_cur, f_cur) {
-            // possible if df is huge
-            if f_cur > 1e-6 {
-                return Err(RootError::ConvergedOnNonZero { x: x_cur });
-            }
             return Ok(x_cur);
         }
 
@@ -151,10 +146,6 @@ where
 
     loop {
         if finish.is_converged(x_pre, x_cur, f_cur) {
-            // possible if df is huge and d2f near zero
-            if f_cur > 1e-6 {
-                return Err(RootError::ConvergedOnNonZero { x: x_cur });
-            }
             return Ok(x_cur);
         }
 
@@ -346,14 +337,11 @@ mod tests {
         let df = |x: f64| -0.001 * (1.0 / x).exp() / (x * x);
 
         let conv = DeltaX::new(1e-9);
-        match newton_raphson(&f, &df, 0.00142, &conv, 100).expect_err("microstep fail") {
-            RootError::ConvergedOnNonZero { .. } => {
-                return;
-            }
-            _ => {
-                assert!(false, "incorrect error type");
-            }
-        }
+        let root = newton_raphson(&f, &df, 0.00142, &conv, 100).expect("root");
+
+        // we "converged" but are far from actual root
+        assert!(root.abs() > 0.001);
+        assert!((root - 0.144765).abs() > 0.14);
     }
 
     #[test]
