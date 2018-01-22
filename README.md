@@ -53,7 +53,6 @@ Then in the 'misc' bucket of work:
 
 1. Flesh out README document to include working examples.
 2. Flesh out rustdocs and maintain a published version, linked via badge.
-3. Add crates.io version badge.
 
 As expected, this project uses semantic versioning (major.minor.patch).  The
 remaining work mostly falls under 'minor' increments.  When that's all done, I
@@ -64,19 +63,28 @@ release.
 ...
 
 # References
-A reasonable introduction to root finding can be found in:
+The Numerical Recipes book covers both implementation and methodology for
+root-finding in depth:
+
+William H. Press, Saul A. Teukolsky, William T. Vetterling, and Brian P.
+Flannery. 2007. Numerical Recipes 3rd Edition: The Art of Scientific Computing
+(3 ed.). Cambridge University Press, New York, NY, USA.
+
+This is a top resource for practioners.  However, the code examples are
+encumbered by copyright so the Rust rootfind library steers clear of NR's
+implementations.
+
+Another reasonable introduction to root finding can be found in:
 
 Recktenwald, G. W. (2000). Numerical methods with MATLAB: implementations and
 applications. Upper Saddle River, NJ: Prentice Hall.
 
-The Wikipedia page on "Root-finding algorithm" is also a good overview.  The
-quality of various algorithm-specific pages varies dramatically.
+Wikipedia's "Root-finding algorithm" page provides a high-level overview of
+root-finding techniques, but it lacks the guidance and detail for practioners.
+The algorithm specific pages are also worth looking at.
 
 I have also found both the C++ Boost and Gnu Scientific Library root-finding
 implementations and documentation to be quite helpful.
-
-The Numerical Recipes book covers implementation in detail and is available to
-read online, but the implementations are encumbered by copyright.
 
 # Author
 This was written by Niek Sanders (niek.sanders@gmail.com).
