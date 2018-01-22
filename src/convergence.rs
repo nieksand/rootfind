@@ -61,6 +61,12 @@ pub struct DualCriteria<'a, C1: 'a + IsConverged, C2: 'a + IsConverged> {
     c2: &'a C2,
 }
 
+impl<'a, C1: 'a + IsConverged, C2: 'a + IsConverged> DualCriteria<'a, C1, C2> {
+    pub fn new(c1: &'a C1, c2: &'a C2) -> DualCriteria<'a, C1, C2> {
+        DualCriteria { c1, c2 }
+    }
+}
+
 impl<'a, C1: IsConverged, C2: IsConverged> IsConverged for DualCriteria<'a, C1, C2> {
     fn is_converged(&self, x_pre: f64, x_cur: f64, f_cur: f64) -> bool {
         self.c1.is_converged(x_pre, x_cur, f_cur) && self.c2.is_converged(x_pre, x_cur, f_cur)
@@ -124,7 +130,7 @@ mod tests {
     fn test_dual_convergence() {
         let c1 = FnResidual::new(1e-4);
         let c2 = DeltaX::new(1e-9);
-        let c = DualCriteria { c1: &c1, c2: &c2 };
+        let c = DualCriteria::new(&c1, &c2);
 
         // neither c1 nor c2
         let x_0 = -3.7;
