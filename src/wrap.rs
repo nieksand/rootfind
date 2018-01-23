@@ -1,3 +1,5 @@
+//! Mathematical traits and generic function wrappers.
+//!
 //! This module provides three simple traits
 //!
 //! * RealFnEval
