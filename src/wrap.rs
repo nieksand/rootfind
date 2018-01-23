@@ -43,7 +43,7 @@ pub trait RealDfEval {
     fn eval_df(&self, x: f64) -> f64;
 }
 
-/// Trait evaluating the second derivative d2f(x) with 
+/// Trait evaluating the second derivative d2f(x) with
 /// d2f: R<sup>1</sup> ⟶R<sup>1</sup>.
 pub trait RealD2fEval {
     fn eval_d2f(&self, x: f64) -> f64;
