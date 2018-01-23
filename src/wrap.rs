@@ -33,17 +33,18 @@
 //! The example's wrapped `f` won't compile with Halley's method because that
 //! requires the second derivative.  We would need RealFnAndFirstSecond instead.
 
-/// Trait evaluating: f(x) with x in R<sup>1</sup>.
+/// Trait evaluating f(x) with f: R<sup>1</sup> ⟶  R<sup>1</sup>.
 pub trait RealFnEval {
     fn eval_f(&self, x: f64) -> f64;
 }
 
-/// Trait evaluating the derivative: df(x) with x in R<sup>1</sup>.
+/// Trait evaluating the derivative df(x) with df: R<sup>1</sup> ⟶  R<sup>1</sup>.
 pub trait RealDfEval {
     fn eval_df(&self, x: f64) -> f64;
 }
 
-/// Trait evaluating the second derivative: d2f(x) with x in R<sup>1</sup>.
+/// Trait evaluating the second derivative d2f(x) with 
+/// d2f: R<sup>1</sup> ⟶R<sup>1</sup>.
 pub trait RealD2fEval {
     fn eval_d2f(&self, x: f64) -> f64;
 }
