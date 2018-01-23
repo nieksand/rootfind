@@ -1,3 +1,4 @@
 pub mod bracket;
-pub mod solver;
 pub mod convergence;
+pub mod solver;
+pub mod wrap;
