@@ -1,5 +1,6 @@
 use std::f64;
 use bracket::{is_sign_change, Bounds};
+use wrap::{RealD2fEval, RealDfEval, RealFnEval};
 use convergence::IsConverged;
 
 #[derive(Debug)]
@@ -7,6 +8,131 @@ pub enum RootError {
     ZeroDerivative { x: f64 },
     IteratedToNaN { x: f64 },
     IterationLimit { last_x: f64 },
+}
+
+/// Driver for iterative root finders.  Allows for arbitrary iteration functions
+/// and converge criteria.  The user function 'f' is kept compatible with the
+/// iteration routine using trait bounds defined in 'wrap' module.
+fn iterative_root_find<F, I, C>(
+    f: &F,
+    iterate: &I,
+    start: f64,
+    finish: &C,
+    max_iter: usize,
+) -> Result<f64, RootError>
+where
+    I: Fn(&F, f64) -> Result<(f64, f64), RootError>,
+    C: IsConverged,
+{
+    assert!(start.is_finite());
+
+    let mut x_pre = start;
+    let (mut x_cur, mut f_cur) = iterate(f, x_pre)?;
+    let mut it = 1;
+
+    loop {
+        if finish.is_converged(x_pre, x_cur, f_cur) {
+            return Ok(x_cur);
+        }
+
+        if it > max_iter {
+            return Err(RootError::IterationLimit { last_x: x_cur });
+        }
+        x_pre = x_cur;
+        let t = iterate(f, x_pre)?;
+        x_cur = t.0;
+        f_cur = t.1;
+        it += 1;
+    }
+}
+
+/// Root finding using Newton-Raphson.  For guesses sufficiently close to the
+/// root this algorithm has quadratic convergence.
+///
+/// This algorithm requires the first derivative of f(x).  If the second
+/// derivative is also available, consider Halley's method.  If no analytically
+/// computed derivatives are available, consider Brent-Decker.
+///
+/// The 'f' and 'df' are the function and
+/// its first derivative while 'start' indicates the initial guess.  The
+/// 'accuracy' bounds how much x_old and x_new may differ and the max
+/// |f(x_final|) before we declare convergence.
+pub fn newton_raphson<F, C>(
+    f: &F,
+    start: f64,
+    finish: &C,
+    max_iter: usize,
+) -> Result<f64, RootError>
+where
+    F: RealFnEval + RealDfEval,
+    C: IsConverged,
+{
+    iterative_root_find(f, &nr_iteration, start, finish, max_iter)
+}
+
+/// Evaluate a single iteration for Newton's method.  Returns an error if the
+/// derivative evaluates to zero.  Returns (x_new, f(x_new)) otherwise.
+fn nr_iteration<F>(f: &F, x: f64) -> Result<(f64, f64), RootError>
+where
+    F: RealFnEval + RealDfEval,
+{
+    let denom = f.eval_df(x);
+    if denom == 0.0 {
+        return Err(RootError::ZeroDerivative { x });
+    }
+    let f_x = f.eval_f(x);
+    let x_new = x - f_x / denom;
+    if !x_new.is_finite() {
+        return Err(RootError::IteratedToNaN { x });
+    }
+    Ok((x_new, f_x))
+}
+
+/// Root finding using Halley's method.  For guesses sufficiently close to the
+/// root this algorithm has cubic convergence.
+///
+/// This algorithm requires both the first and second derivatives of f(x).  If
+/// only the first derivative is available, consider Newton-Raphson.  If no
+/// analytically computed derivatives are available, consider Brent-Decker.
+///
+/// The 'f', 'df', and 'd2f' are the function and its first and second
+/// derivatives.  The 'start' indicates the initial guess.  The 'accuracy'
+/// bounds how much x_old and x_new may differ and the max |f(x_final|) before
+/// we declare convergence.
+///
+/// A good overview of the derivation, history, and geometric interpretation of
+/// Halley's method is in:
+///
+/// Scavo, T. R.; Thoo, J. B. (1995). "On the geometry of Halley's method".
+/// American Mathematical Monthly. 102 (5): 417–426.
+///
+pub fn halley_method<F, C>(f: &F, start: f64, finish: &C, max_iter: usize) -> Result<f64, RootError>
+where
+    F: RealFnEval + RealDfEval + RealD2fEval,
+    C: IsConverged,
+{
+    iterative_root_find(f, &halley_iteration, start, finish, max_iter)
+}
+
+/// Evaluate a single iteration for Halley's method.  Returns (x_new, f(x_new))
+/// on success.
+fn halley_iteration<F>(f: &F, x: f64) -> Result<(f64, f64), RootError>
+where
+    F: RealFnEval + RealDfEval + RealD2fEval,
+{
+    let f_x = f.eval_f(x);
+    let df_x = f.eval_df(x);
+    let d2f_x = f.eval_d2f(x);
+
+    if df_x == 0.0 {
+        return Err(RootError::ZeroDerivative { x });
+    }
+
+    let x_new = x - (2.0 * f_x * df_x) / (2.0 * df_x * df_x - f_x * d2f_x);
+    if !x_new.is_finite() {
+        return Err(RootError::IteratedToNaN { x });
+    }
+    Ok((x_new, f_x))
 }
 
 /// Root finding via Bisection Method.  It always converges given a valid
@@ -42,151 +168,11 @@ where
     })
 }
 
-/// Root finding using Newton-Raphson.  For guesses sufficiently close to the
-/// root this algorithm has quadratic convergence.
-///
-/// This algorithm requires the first derivative of f(x).  If the second
-/// derivative is also available, consider Halley's method.  If no analytically
-/// computed derivatives are available, consider Brent-Decker.
-///
-/// The 'f' and 'df' are the function and
-/// its first derivative while 'start' indicates the initial guess.  The
-/// 'accuracy' bounds how much x_old and x_new may differ and the max
-/// |f(x_final|) before we declare convergence.
-pub fn newton_raphson<F1, F2, C>(
-    f: &F1,
-    df: &F2,
-    start: f64,
-    finish: &C,
-    max_iter: usize,
-) -> Result<f64, RootError>
-where
-    F1: Fn(f64) -> f64,
-    F2: Fn(f64) -> f64,
-    C: IsConverged,
-{
-    assert!(start.is_finite());
-
-    let mut x_pre = start;
-    let (mut x_cur, mut f_cur) = nr_iteration(f, df, x_pre)?;
-    let mut it = 1;
-
-    loop {
-        if finish.is_converged(x_pre, x_cur, f_cur) {
-            return Ok(x_cur);
-        }
-
-        if it > max_iter {
-            return Err(RootError::IterationLimit { last_x: x_cur });
-        }
-        x_pre = x_cur;
-        let t = nr_iteration(f, df, x_pre)?;
-        x_cur = t.0;
-        f_cur = t.1;
-        it += 1;
-    }
-}
-
-/// Evaluate a single iteration for Newton's method.  Returns an error if the
-/// derivative evaluates to zero.  Returns (x_new, f(x_new)) otherwise.
-fn nr_iteration<F1, F2>(f: &F1, df: &F2, x: f64) -> Result<(f64, f64), RootError>
-where
-    F1: Fn(f64) -> f64,
-    F2: Fn(f64) -> f64,
-{
-    let denom = df(x);
-    if denom == 0.0 {
-        return Err(RootError::ZeroDerivative { x });
-    }
-    let f_x = f(x);
-    let x_new = x - f_x / denom;
-    if !x_new.is_finite() {
-        return Err(RootError::IteratedToNaN { x });
-    }
-    Ok((x_new, f_x))
-}
-
-/// Root finding using Halley's method.  For guesses sufficiently close to the
-/// root this algorithm has cubic convergence.
-///
-/// This algorithm requires both the first and second derivatives of f(x).  If
-/// only the first derivative is available, consider Newton-Raphson.  If no
-/// analytically computed derivatives are available, consider Brent-Decker.
-///
-/// The 'f', 'df', and 'd2f' are the function and its first and second
-/// derivatives.  The 'start' indicates the initial guess.  The 'accuracy'
-/// bounds how much x_old and x_new may differ and the max |f(x_final|) before
-/// we declare convergence.
-///
-/// A good overview of the derivation, history, and geometric interpretation of
-/// Halley's method is in:
-///
-/// Scavo, T. R.; Thoo, J. B. (1995). "On the geometry of Halley's method".
-/// American Mathematical Monthly. 102 (5): 417–426.
-///
-pub fn halley_method<F1, F2, F3, C>(
-    f: &F1,
-    df: &F2,
-    d2f: &F3,
-    start: f64,
-    finish: &C,
-    max_iter: usize,
-) -> Result<f64, RootError>
-where
-    F1: Fn(f64) -> f64,
-    F2: Fn(f64) -> f64,
-    F3: Fn(f64) -> f64,
-    C: IsConverged,
-{
-    assert!(start.is_finite());
-
-    let mut x_pre = start;
-    let (mut x_cur, mut f_cur) = halley_iteration(f, df, d2f, x_pre)?;
-    let mut it = 1;
-
-    loop {
-        if finish.is_converged(x_pre, x_cur, f_cur) {
-            return Ok(x_cur);
-        }
-
-        if it > max_iter {
-            return Err(RootError::IterationLimit { last_x: x_cur });
-        }
-        x_pre = x_cur;
-        let t = halley_iteration(f, df, d2f, x_pre)?;
-        x_cur = t.0;
-        f_cur = t.1;
-        it += 1;
-    }
-}
-
-/// Evaluate a single iteration for Halley's method.  Returns (x_new, f(x_new))
-/// on success.
-fn halley_iteration<F1, F2, F3>(f: &F1, df: &F2, d2f: &F3, x: f64) -> Result<(f64, f64), RootError>
-where
-    F1: Fn(f64) -> f64,
-    F2: Fn(f64) -> f64,
-    F3: Fn(f64) -> f64,
-{
-    let f_x = f(x);
-    let df_x = df(x);
-    let d2f_x = d2f(x);
-
-    if df_x == 0.0 {
-        return Err(RootError::ZeroDerivative { x });
-    }
-
-    let x_new = x - (2.0 * f_x * df_x) / (2.0 * df_x * df_x - f_x * d2f_x);
-    if !x_new.is_finite() {
-        return Err(RootError::IteratedToNaN { x });
-    }
-    Ok((x_new, f_x))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use convergence::DeltaX;
+    use wrap::{RealFnAndFirst, RealFnAndFirstSecond};
 
     struct RootTest {
         name: &'static str,
@@ -271,8 +257,8 @@ mod tests {
         let conv = DeltaX::new(1e-9);
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let root =
-                    newton_raphson(&t.f, &t.df, t.guesses[i], &conv, 100).expect("found root");
+                let f = RealFnAndFirst::new(&t.f, &t.df);
+                let root = newton_raphson(&f, t.guesses[i], &conv, 100).expect("found root");
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
@@ -284,18 +270,22 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_newton_nonfinite_start() {
-        let f = |x| (x - 5.0) * (x - 4.0);
-        let df = |x| 2.0 * x - 9.0;
+        let in_f = |x| (x - 5.0) * (x - 4.0);
+        let in_df = |x| 2.0 * x - 9.0;
+        let f = RealFnAndFirst::new(&in_f, &in_df);
+
         let conv = DeltaX::new(1e-9);
-        let _ = newton_raphson(&f, &df, f64::NAN, &conv, 100);
+        let _ = newton_raphson(&f, f64::NAN, &conv, 100);
     }
 
     #[test]
     fn test_newton_zero_derivative() {
-        let f = |_| 2.0;
-        let df = |_| 0.0;
+        let in_f = |_| 2.0;
+        let in_df = |_| 0.0;
+        let f = RealFnAndFirst::new(&in_f, &in_df);
+
         let conv = DeltaX::new(1e-9);
-        match newton_raphson(&f, &df, 5.8, &conv, 100).expect_err("zero derivative not ok") {
+        match newton_raphson(&f, 5.8, &conv, 100).expect_err("zero derivative not ok") {
             RootError::ZeroDerivative { .. } => {
                 return;
             }
@@ -310,8 +300,8 @@ mod tests {
         let conv = DeltaX::new(1e-9);
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let root = halley_method(&t.f, &t.df, &t.d2f, t.guesses[i], &conv, 100)
-                    .expect("found root");
+                let f = RealFnAndFirstSecond::new(&t.f, &t.df, &t.d2f);
+                let root = halley_method(&f, t.guesses[i], &conv, 100).expect("found root");
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
@@ -323,21 +313,24 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_halley_nonfinite_start() {
-        let f = |x: f64| x.sin();
-        let df = |x: f64| x.cos();
-        let d2f = |x: f64| -x.sin();
+        let in_f = |x: f64| x.sin();
+        let in_df = |x: f64| x.cos();
+        let in_d2f = |x: f64| -x.sin();
+        let f = RealFnAndFirstSecond::new(&in_f, &in_df, &in_d2f);
+
         let conv = DeltaX::new(1e-9);
-        let _ = halley_method(&f, &df, &d2f, f64::NAN, &conv, 100);
+        let _ = halley_method(&f, f64::NAN, &conv, 100);
     }
 
     #[test]
     fn test_pathology_microstep() {
         // f(x) = 0.01*e^(1/x)-1
-        let f = |x: f64| 0.001 * (1.0 / x).exp() - 1.0;
-        let df = |x: f64| -0.001 * (1.0 / x).exp() / (x * x);
+        let in_f = |x: f64| 0.001 * (1.0 / x).exp() - 1.0;
+        let in_df = |x: f64| -0.001 * (1.0 / x).exp() / (x * x);
+        let f = RealFnAndFirst::new(&in_f, &in_df);
 
         let conv = DeltaX::new(1e-9);
-        let root = newton_raphson(&f, &df, 0.00142, &conv, 100).expect("root");
+        let root = newton_raphson(&f, 0.00142, &conv, 100).expect("root");
 
         // we "converged" but are far from actual root
         assert!(root.abs() > 0.001);
@@ -347,12 +340,14 @@ mod tests {
     #[test]
     fn test_pathology_flatlining() {
         // f(x)=1/e^(x^100) - 0.5, roots approx -0.996342 and 0.996342
-        let f = |x: f64| x.powi(-100).exp() - 0.5;
+        let in_f = |x: f64| x.powi(-100).exp() - 0.5;
 
         // d/dx = -100e^(-x^100) * x^99
-        let df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
+        let in_df = |x: f64| -100.0 * (-x.powi(100)).exp() * x.powi(99);
+
+        let f = RealFnAndFirst::new(&in_f, &in_df);
 
         let conv = DeltaX::new(1e-9);
-        let _ = newton_raphson(&f, &df, 0.99999, &conv, 100).expect_err("no convergence");
+        let _ = newton_raphson(&f, 0.99999, &conv, 100).expect_err("no convergence");
     }
 }
