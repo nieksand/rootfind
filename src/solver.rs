@@ -27,23 +27,23 @@ where
     assert!(start.is_finite());
 
     let mut x_pre = start;
-    let (mut x_cur, mut f_cur) = iterate(f, x_pre)?;
-    let mut it = 1;
+    let mut x_cur = start;
 
-    loop {
+    // stay inside maximum iteration count
+    for _ in 0..max_iter {
+        // invoke iteration method
+        let t = iterate(f, x_pre)?;
+        x_cur = t.0;
+        let f_cur = t.1;
+
+        // check convergence
         if finish.is_converged(x_pre, x_cur, f_cur) {
             return Ok(x_cur);
         }
 
-        if it > max_iter {
-            return Err(RootError::IterationLimit { last_x: x_cur });
-        }
         x_pre = x_cur;
-        let t = iterate(f, x_pre)?;
-        x_cur = t.0;
-        f_cur = t.1;
-        it += 1;
     }
+    return Err(RootError::IterationLimit { last_x: x_cur });
 }
 
 /// Root finding using Newton-Raphson.  For guesses sufficiently close to the
