@@ -52,7 +52,6 @@ staying away from it.
 Then in the 'misc' bucket of work:
 
 1. Flesh out README document to include working examples.
-2. Flesh out rustdocs and maintain a published version, linked via badge.
 
 As expected, this project uses semantic versioning (major.minor.patch).  The
 remaining work mostly falls under 'minor' increments.  When that's all done, I
