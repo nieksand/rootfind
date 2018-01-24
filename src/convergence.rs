@@ -1,13 +1,43 @@
+//! Convergence criteria.
+//!
+//! This module defines the convergence criteria used to stop iterative root
+//! finders.  Users can supply custom criteria by implementing the `IsConverged`
+//! trait.
+//!
+//! This module also supplies two canned criteria:
+//!
+//! * DeltaX - stops when the steps along x-axis, |x_pre - x_cur|, gets small enough.
+//! * FnResidual - stops when |f(x_cur)| gets small enough.
+//!
+//! It also provides a generic wrapper `DualCriteria` allowing two
+//! IsConverged implementations to be combined.
+//!
+//! # Examples
+//! ```
+//! use rootfind::convergence::*;
+//!
+//! let c1 = DeltaX::new(1e-6);
+//! let c2 = FnResidual::new(1e-9);
+//! let finish = DualCriteria::new(&c1, &c2);
+//!
+//! // c1 satisfied but not c2
+//! assert_eq!(finish.is_converged(0.1, 0.1+1e-7, 1e-8), false);
+//!
+//! // both required conditions satisfied
+//! assert_eq!(finish.is_converged(0.1, 0.1+1e-7, 1e-12), true);
+//! ```
+
 /// Type can check if iterative root-finding process has converged.
 pub trait IsConverged {
-    /// Indicate whether root-finding has converged.  The 'x_pre' and 'x_cur'
-    /// are the previous and current iteration x values.  The 'f_cur' holds
-    /// f(x_cur).
+    /// Indicate whether root-finding has converged.
+    ///
+    /// The `x_pre` and `x_cur` are the previous and current iteration x values.
+    /// The `f_cur` holds f(x_cur).
     fn is_converged(&self, x_pre: f64, x_cur: f64, f_cur: f64) -> bool;
 }
 
 /// DeltaX converges when the distance along the x-axis between successive
-/// iterations becomes smaller than 'epsilon_abs'.
+/// iterations becomes smaller than epsilon_abs.
 ///
 /// The test_pathology_microstep() shows a situation where this converges
 /// prematurely.  Specifically, for a method like Newton-Raphson, a massive
@@ -54,8 +84,9 @@ impl IsConverged for FnResidual {
     }
 }
 
-/// DualCriteria combines two IsConverged implementations, requiring both to be
-/// true for convergence.
+/// DualCriteria combines two IsConverged implementors.
+///
+/// Both must be true for convergence.
 pub struct DualCriteria<'a, C1: 'a + IsConverged, C2: 'a + IsConverged> {
     c1: &'a C1,
     c2: &'a C2,
