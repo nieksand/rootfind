@@ -58,6 +58,10 @@ impl Bounds {
     pub fn middle(&self) -> f64 {
         self.a + (self.b - self.a) * 0.5
     }
+
+    pub fn contain(&self, x: f64) -> bool {
+        x >= self.a && x <= self.b
+    }
 }
 
 /// BracketGenerator is an iterator that emits root-holding brackets.
@@ -174,6 +178,34 @@ mod tests {
     #[should_panic]
     fn test_bounds_new_infinite() {
         Bounds::new(f64::NEG_INFINITY, f64::INFINITY);
+    }
+
+    #[test]
+    fn test_bounds_middle() {
+        // exact representation
+        let b = Bounds::new(0.0, 10.0);
+        assert_eq!(b.middle(), 5.0);
+
+        // approximation
+        let (pi, pi_2) = (f64::consts::PI, f64::consts::FRAC_PI_2);
+        let b = Bounds::new(1.0, 1.0 + pi);
+        assert!((b.middle() - (pi_2 + 1.)).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_bounds_contain() {
+        let b = Bounds::new(28.0, 31.2);
+
+        // outside
+        assert_eq!(b.contain(-29.0), false);
+        assert_eq!(b.contain(31.21), false);
+
+        // on end points
+        assert_eq!(b.contain(28.0), true);
+        assert_eq!(b.contain(31.2), true);
+
+        // inside
+        assert_eq!(b.contain(29.631), true);
     }
 
     #[test]
