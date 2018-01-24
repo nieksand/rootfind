@@ -71,8 +71,8 @@ pub enum RootError {
 
 /// Driver for iterative root finders.
 ///
-/// Allows for arbitrary iteration functions and converge criteria.  The user 
-/// function 'f' is kept compatible with the iteration routine using trait 
+/// Allows for arbitrary iteration functions and converge criteria.  The user
+/// function 'f' is kept compatible with the iteration routine using trait
 /// bounds defined in 'wrap' module.
 fn iterative_root_find<F, I, C>(
     f: &F,
@@ -280,6 +280,15 @@ mod tests {
                 roots: vec![1.52137970680457],
                 guesses: vec![1.0],
                 brackets: vec![Bounds::new(1.0, 2.0)],
+            },
+            RootTest {
+                name: "Isaac Newton's Actual Example",
+                f: |x| x * x * x + 10.0 * x * x - 7.0 * x - 44.0,
+                df: |x| 3.0 * x * x + 20.0 * x - 7.0,
+                d2f: |x| 6.0 * x + 20.0,
+                roots: vec![2.20681731724844],
+                guesses: vec![2.2],
+                brackets: vec![Bounds::new(2.0, 2.3)],
             },
         ]
     }
