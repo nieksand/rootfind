@@ -107,10 +107,8 @@ where
 
 /// Root finding using Newton-Raphson.
 ///
-/// The `start` indicates the initial guess.
-///
-/// For guesses sufficiently close to the root this algorithm has quadratic
-/// convergence.
+/// The `start` indicates the initial guess.  For guesses sufficiently close to
+/// the root this algorithm has quadratic convergence.
 ///
 /// This algorithm requires the first derivative of f(x).
 ///
@@ -149,10 +147,8 @@ where
 
 /// Root finding using Halley's method.
 ///
-/// The `start` indicates the initial guess.
-///
-/// For guesses sufficiently close to the/ root this algorithm has cubic
-/// convergence.
+/// The `start` indicates the initial guess.  For guesses sufficiently close to
+/// the root this algorithm has cubic convergence.
 ///
 /// This algorithm requires both the first and second derivatives of f(x).
 ///
