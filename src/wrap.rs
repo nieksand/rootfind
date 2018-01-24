@@ -31,7 +31,19 @@
 //! ```
 //!
 //! The example's wrapped `f` won't compile with Halley's method because that
-//! requires the second derivative.  We would need RealFnAndFirstSecond instead.
+//! requires the second derivative.  We would need RealFnAndFirstSecond instead:
+//!
+//! ```
+//! use rootfind::wrap;
+//!
+//! let in_f = |x: f64| x.sin();
+//! let in_df = |x: f64| x.cos();
+//! let in_d2f = |x: f64| -x.sin();
+//!
+//! let f = wrap::RealFnAndFirstSecond::new(&in_f, &in_df, &in_d2f);
+//!
+//! // f can now be used in bisection, Newton-Raphson, or Halley's method
+//! ```
 
 /// Trait evaluating f(x) with f: R<sup>1</sup> ⟶  R<sup>1</sup>.
 pub trait RealFnEval {

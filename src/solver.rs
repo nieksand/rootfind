@@ -69,9 +69,11 @@ pub enum RootError {
     IterationLimit { last_x: f64 },
 }
 
-/// Driver for iterative root finders.  Allows for arbitrary iteration functions
-/// and converge criteria.  The user function 'f' is kept compatible with the
-/// iteration routine using trait bounds defined in 'wrap' module.
+/// Driver for iterative root finders.
+///
+/// Allows for arbitrary iteration functions and converge criteria.  The user 
+/// function 'f' is kept compatible with the iteration routine using trait 
+/// bounds defined in 'wrap' module.
 fn iterative_root_find<F, I, C>(
     f: &F,
     iterate: &I,
@@ -158,8 +160,8 @@ where
 /// A good overview of the derivation, history, and geometric interpretation of
 /// Halley's method is in:
 ///
-/// Scavo, T. R.; Thoo, J. B. (1995). "On the geometry of Halley's method".
-/// American Mathematical Monthly. 102 (5): 417–426.
+/// *Scavo, T. R.; Thoo, J. B. (1995). "On the geometry of Halley's method".
+/// American Mathematical Monthly. 102 (5): 417–426.*
 ///
 pub fn halley_method<F, C>(f: &F, start: f64, finish: &C, max_iter: usize) -> Result<f64, RootError>
 where
