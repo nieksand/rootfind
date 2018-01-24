@@ -282,13 +282,22 @@ mod tests {
                 brackets: vec![Bounds::new(1.0, 2.0)],
             },
             RootTest {
-                name: "Isaac Newton's Actual Example",
+                name: "Isaac Newton's Secant Example",
                 f: |x| x * x * x + 10.0 * x * x - 7.0 * x - 44.0,
                 df: |x| 3.0 * x * x + 20.0 * x - 7.0,
                 d2f: |x| 6.0 * x + 20.0,
                 roots: vec![2.20681731724844],
                 guesses: vec![2.2],
                 brackets: vec![Bounds::new(2.0, 2.3)],
+            },
+            RootTest {
+                name: "Isaac Newton's NR Example",
+                f: |x| x * x * x - 2.0 * x - 5.0,
+                df: |x| 3.0 * x * x - 2.0,
+                d2f: |x| 6.0 * x,
+                roots: vec![2.0945514815423265],
+                guesses: vec![2.0],
+                brackets: vec![Bounds::new(2.0, 3.0)],
             },
         ]
     }
