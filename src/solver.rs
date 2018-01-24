@@ -1,12 +1,71 @@
+//! Root finding algorithms.
+//!
+//! Fucntions typically have to be wrapped before use.  See the `wrap` module
+//! for how to do this.
+//!
+//! Custom convergence criteria can be supplied.  Canned ones exist in the
+//! `convergence` module.
+//!
+//! # Examples
+//! Using Newton-Raphson:
+//!
+//! ```
+//! use rootfind::solver::newton_raphson;
+//! use rootfind::convergence::DeltaX;
+//! use rootfind::wrap::RealFnAndFirst;
+//!
+//! // function and its derivative
+//! let in_f = |x: f64| -x*x + 2.0*x + 1.0;
+//! let in_df = |x: f64| -2.0*x + 2.0;
+//! let f = RealFnAndFirst::new(&in_f, &in_df);
+//!
+//! // convergence criteria
+//! let conv = DeltaX::new(1e-9);
+//!
+//! // invoke Newton-Raphson
+//! let max_iterations = 20;
+//! let root = newton_raphson(&f, 3.0, &conv, max_iterations).expect("root");
+//!
+//! // root at x=1+sqrt(2)
+//! assert!((root-2.41421356237).abs() < 1e-9);
+//! ```
+//!
+//! Using Bisection Method:
+//!
+//! ```
+//! use rootfind::bracket::Bounds;
+//! use rootfind::solver::bisection;
+//!
+//! // function... no derivatives needed!
+//! let in_f = |x: f64| -x*x + 2.0*x + 1.0;
+//!
+//! // invoke bisection
+//! let max_iterations = 20;
+//! let root = bisection(&in_f, &Bounds::new(2.0, 3.0), 100).expect("root");
+//!
+//! // root at x=1+sqrt(2)
+//! assert!((root-2.41421356237).abs() < 1e-9);
+//! ```
+
 use std::f64;
 use bracket::{is_sign_change, Bounds};
 use wrap::{RealD2fEval, RealDfEval, RealFnEval};
 use convergence::IsConverged;
 
+/// Root finding error conditions.
+///
+/// To help with diagnostics, these errors typically return the last relevant
+/// `x` position.
 #[derive(Debug)]
 pub enum RootError {
+    /// Derivative went to zero for method that depends on it to determine next
+    /// step.
     ZeroDerivative { x: f64 },
+
+    /// The solver computed a NaN for its next step x-value.
     IteratedToNaN { x: f64 },
+
+    /// Iteration limit was reached.
     IterationLimit { last_x: f64 },
 }
 
@@ -46,17 +105,15 @@ where
     return Err(RootError::IterationLimit { last_x: x_cur });
 }
 
-/// Root finding using Newton-Raphson.  For guesses sufficiently close to the
-/// root this algorithm has quadratic convergence.
+/// Root finding using Newton-Raphson.
 ///
-/// This algorithm requires the first derivative of f(x).  If the second
-/// derivative is also available, consider Halley's method.  If no analytically
-/// computed derivatives are available, consider Brent-Decker.
+/// The `start` indicates the initial guess.  For guesses sufficiently close to
+/// the root this algorithm has quadratic convergence.
 ///
-/// The 'f' and 'df' are the function and
-/// its first derivative while 'start' indicates the initial guess.  The
-/// 'accuracy' bounds how much x_old and x_new may differ and the max
-/// |f(x_final|) before we declare convergence.
+/// This algorithm requires the first derivative of f(x).
+///
+/// * If the second derivative is also available, consider Halley's method.
+/// * If analytically computed derivatives are not available, consider Brent-Decker.
 pub fn newton_raphson<F, C>(
     f: &F,
     start: f64,
@@ -88,17 +145,15 @@ where
     Ok((x_new, f_x))
 }
 
-/// Root finding using Halley's method.  For guesses sufficiently close to the
-/// root this algorithm has cubic convergence.
+/// Root finding using Halley's method.
 ///
-/// This algorithm requires both the first and second derivatives of f(x).  If
-/// only the first derivative is available, consider Newton-Raphson.  If no
-/// analytically computed derivatives are available, consider Brent-Decker.
+/// The `start` indicates the initial guess.  For guesses sufficiently close to
+/// the root this algorithm has cubic convergence.
 ///
-/// The 'f', 'df', and 'd2f' are the function and its first and second
-/// derivatives.  The 'start' indicates the initial guess.  The 'accuracy'
-/// bounds how much x_old and x_new may differ and the max |f(x_final|) before
-/// we declare convergence.
+/// This algorithm requires both the first and second derivatives of f(x).
+///
+/// * If only the first derivative is available, consider Newton-Raphson.
+/// * If analytically computed derivatives are not available, consider Brent-Decker.
 ///
 /// A good overview of the derivation, history, and geometric interpretation of
 /// Halley's method is in:
@@ -135,8 +190,10 @@ where
     Ok((x_new, f_x))
 }
 
-/// Root finding via Bisection Method.  It always converges given a valid
-/// starting bracket, but the speed of convergence is linear.
+/// Root finding via Bisection Method.
+///
+/// It always converges given a valid starting bracket, but the speed of
+/// convergence is linear.
 pub fn bisection<F>(f: &F, bounds: &Bounds, max_iter: usize) -> Result<f64, RootError>
 where
     F: Fn(f64) -> f64,
