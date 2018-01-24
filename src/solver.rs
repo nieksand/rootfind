@@ -299,6 +299,27 @@ mod tests {
                 guesses: vec![2.0],
                 brackets: vec![Bounds::new(2.0, 3.0)],
             },
+            RootTest {
+                name: "Thomas Simpson NR Example",
+                f: |x| {
+                    (1. - x).sqrt() + (1. - 2. * x * x).sqrt() + (1. - 3. * x * x * x).sqrt() - 2.
+                },
+                df: |x| {
+                    -2. * x * (1. - 2. * x * x).sqrt().recip()
+                        - 9. * x * x * (1. - 3. * x * x * x).sqrt().recip() / 2.
+                        - 1. * (1. - x).sqrt().recip() / 2.
+                },
+                d2f: |x| {
+                    -9. * x * (1. - 3. * x * x * x).sqrt().recip()
+                        - 4. * x * x * (1. - 2. * x * x).powf(1.5)
+                        - 2. * (1. - 2. * x * x).sqrt().recip()
+                        - 81. * x * x * x * x * (1. - 3. * x * x * x).powf(1.5) / 4.
+                        - 1. * (1. - x).powf(1.5) / 4.
+                },
+                roots: vec![0.55158615249704711724768527],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 3.0)],
+            },
         ]
     }
 
