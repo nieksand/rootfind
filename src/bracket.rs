@@ -41,24 +41,49 @@
 
 use std::f64;
 
-/// Bounds represents the closed interval [a,b].
+/// Bounds represents the closed finite interval [a,b].
 #[derive(Clone, Debug, PartialEq)]
 pub struct Bounds {
+    /// Left side of interval.
     pub a: f64,
+
+    /// Right side of interval.
     pub b: f64,
 }
 
 impl Bounds {
+    /// Create new closed interval [a, b].
+    ///
+    /// This will panic if the bounds are invalid or not finite.
     pub fn new(a: f64, b: f64) -> Bounds {
         assert!(a <= b);
         assert!(a.is_finite() && b.is_finite());
         Bounds { a, b }
     }
 
+    /// Computes the midpoint of the interval.
+    ///
+    /// Doing this robustly is surprisingly tricky.  An extremely in-depth review
+    /// of different techniques, accuracies, and pathologies can be found in:
+    ///
+    /// *Frédéric Goualard. How do you compute the midpoint of an interval?. ACM
+    /// Transactions on Mathematical Software, Association for Computing Machinery,
+    /// 2014, 40 (2), <10.1145/2493882>. <hal00576641v1>*
+    ///
+    /// This implementation uses a simplified H-Method.  Our interval is always
+    /// finite so we don't handle those cases from the paper.  Rust also doesn't
+    /// expose the IEEE 754 rounding methods so we use what is supplied by the
+    /// environment rather than 'round to nearest-even'.
+    ///
     pub fn middle(&self) -> f64 {
-        self.a + (self.b - self.a) * 0.5
+        if self.a == -self.b {
+            0.0
+        } else {
+            (self.a - self.a / 2.0) + self.b / 2.0
+        }
     }
 
+    /// Check if x is in interval.
     pub fn contains(&self, x: f64) -> bool {
         x >= self.a && x <= self.b
     }
@@ -175,13 +200,22 @@ mod tests {
     }
 
     #[test]
+    fn test_bounds_new_signed_zeros() {
+        let a = 0.0;
+        let b = -0.0;
+        assert_eq!(a, b);
+
+        Bounds::new(0.0, -0.0);
+    }
+
+    #[test]
     #[should_panic]
     fn test_bounds_new_infinite() {
         Bounds::new(f64::NEG_INFINITY, f64::INFINITY);
     }
 
     #[test]
-    fn test_bounds_middle() {
+    fn test_bounds_middle_offset() {
         // exact representation
         let b = Bounds::new(0.0, 10.0);
         assert_eq!(b.middle(), 5.0);
@@ -190,6 +224,44 @@ mod tests {
         let (pi, pi_2) = (f64::consts::PI, f64::consts::FRAC_PI_2);
         let b = Bounds::new(1.0, 1.0 + pi);
         assert!((b.middle() - (pi_2 + 1.)).abs() < 1e-9);
+
+        // underflow
+        let b = Bounds::new(f64::MIN_POSITIVE / 20.0, f64::MIN_POSITIVE / 4.0);
+        assert!(b.contains(b.middle()));
+    }
+
+    #[test]
+    fn test_bounds_middle_symmetric() {
+        // easy case
+        let b = Bounds::new(-10.0, 10.0);
+        assert_eq!(b.middle(), 0.0);
+
+        // overflow?
+        let b = Bounds::new(f64::MIN, f64::MAX);
+        assert_eq!(b.middle(), 0.0);
+
+        // underflow?
+        let v = f64::MIN_POSITIVE / 2.0;
+        assert!(!v.is_normal());
+        let b = Bounds::new(-v, v);
+        assert_eq!(b.middle(), 0.0);
+    }
+
+    #[test]
+    fn test_bounds_middle_degenerate() {
+        // easy case
+        let b = Bounds::new(10.0, 10.0);
+        assert_eq!(b.middle(), 10.0);
+
+        // overflow?
+        let b = Bounds::new(f64::MAX, f64::MAX);
+        assert_eq!(b.middle(), f64::MAX);
+
+        // underflow?
+        let v = f64::MIN_POSITIVE / 2.0;
+        assert!(!v.is_normal());
+        let b = Bounds::new(v, v);
+        assert_eq!(b.middle(), v);
     }
 
     #[test]
