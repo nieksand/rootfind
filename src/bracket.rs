@@ -59,7 +59,7 @@ impl Bounds {
         self.a + (self.b - self.a) * 0.5
     }
 
-    pub fn contain(&self, x: f64) -> bool {
+    pub fn contains(&self, x: f64) -> bool {
         x >= self.a && x <= self.b
     }
 }
@@ -193,19 +193,19 @@ mod tests {
     }
 
     #[test]
-    fn test_bounds_contain() {
+    fn test_bounds_contains() {
         let b = Bounds::new(28.0, 31.2);
 
         // outside
-        assert_eq!(b.contain(-29.0), false);
-        assert_eq!(b.contain(31.21), false);
+        assert_eq!(b.contains(-29.0), false);
+        assert_eq!(b.contains(31.21), false);
 
         // on end points
-        assert_eq!(b.contain(28.0), true);
-        assert_eq!(b.contain(31.2), true);
+        assert_eq!(b.contains(28.0), true);
+        assert_eq!(b.contains(31.2), true);
 
         // inside
-        assert_eq!(b.contain(29.631), true);
+        assert_eq!(b.contains(29.631), true);
     }
 
     #[test]
