@@ -36,7 +36,7 @@
 //! use rootfind::bracket::Bounds;
 //! use rootfind::solver::bisection;
 //!
-//! // function and its derivative
+//! // function... no derivatives needed!
 //! let in_f = |x: f64| -x*x + 2.0*x + 1.0;
 //!
 //! // invoke bisection
