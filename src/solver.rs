@@ -1,18 +1,71 @@
 //! Root finding algorithms.
 //!
-//! need examples!
-//! talk about wrapped functions!
-//! talk about pluggable convergence critiera!
+//! Fucntions typically have to be wrapped before use.  See the `wrap` module
+//! for how to do this.
+//!
+//! Custom convergence criteria can be supplied.  Canned ones exist in the
+//! `convergence` module.
+//!
+//! # Examples
+//! Using Newton-Raphson:
+//!
+//! ```
+//! use rootfind::solver::newton_raphson;
+//! use rootfind::convergence::DeltaX;
+//! use rootfind::wrap::RealFnAndFirst;
+//!
+//! // function and its derivative
+//! let in_f = |x: f64| -x*x + 2.0*x + 1.0;
+//! let in_df = |x: f64| -2.0*x + 2.0;
+//! let f = RealFnAndFirst::new(&in_f, &in_df);
+//!
+//! // convergence criteria
+//! let conv = DeltaX::new(1e-9);
+//!
+//! // invoke Newton-Raphson
+//! let max_iterations = 20;
+//! let root = newton_raphson(&f, 3.0, &conv, max_iterations).expect("root");
+//!
+//! // root at x=1+sqrt(2)
+//! assert!((root-2.41421356237).abs() < 1e-9);
+//! ```
+//!
+//! Using Bisection Method:
+//!
+//! ```
+//! use rootfind::bracket::Bounds;
+//! use rootfind::solver::bisection;
+//!
+//! // function and its derivative
+//! let in_f = |x: f64| -x*x + 2.0*x + 1.0;
+//!
+//! // invoke bisection
+//! let max_iterations = 20;
+//! let root = bisection(&in_f, &Bounds::new(2.0, 3.0), 100).expect("root");
+//!
+//! // root at x=1+sqrt(2)
+//! assert!((root-2.41421356237).abs() < 1e-9);
+//! ```
 
 use std::f64;
 use bracket::{is_sign_change, Bounds};
 use wrap::{RealD2fEval, RealDfEval, RealFnEval};
 use convergence::IsConverged;
 
+/// Root finding error conditions.
+///
+/// To help with diagnostics, these errors typically return the last relevant
+/// `x` position.
 #[derive(Debug)]
 pub enum RootError {
+    /// Derivative went to zero for method that depends on it to determine next
+    /// step.
     ZeroDerivative { x: f64 },
+
+    /// The solver computed a NaN for its next step x-value.
     IteratedToNaN { x: f64 },
+
+    /// Iteration limit was reached.
     IterationLimit { last_x: f64 },
 }
 
@@ -142,7 +195,7 @@ where
 }
 
 /// Root finding via Bisection Method.
-/// 
+///
 /// It always converges given a valid starting bracket, but the speed of
 /// convergence is linear.
 pub fn bisection<F>(f: &F, bounds: &Bounds, max_iter: usize) -> Result<f64, RootError>
