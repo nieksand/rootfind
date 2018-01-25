@@ -135,7 +135,11 @@ where
     }
 }
 
-/// Check if signs differ while properly handling integer underflow.
+/// Check if signs differ while properly handling floating point underflow.
+///
+/// The common alternative `a * b < 0` fails if the signs differ but enough 
+/// precision is lost that result is zero--i.e. multiplying two subnormal floats
+/// together.  This is illustrated in test_is_sign_change_underflow().
 pub fn is_sign_change(lhs: f64, rhs: f64) -> bool {
     lhs.signum() != rhs.signum()
 }
