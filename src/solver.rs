@@ -437,7 +437,18 @@ mod tests {
                 guesses: vec![1.2],
                 brackets: vec![Bounds::new(0.7, 1.2)],
             },
-            // Example Eight goes here
+            RootTest {
+                name: "Ford95 Example Eight",
+                f: |x| (21000. / x).exp() / (1.11 * 100000000000. * x * x) - 1.,
+                df: |x| (-1.8018e-11 * (21000. / x).exp() * (x + 10500.)) / (x * x * x * x),
+                d2f: |x| {
+                    (21000. / x).exp() * (5.40541e-11 * x * x + 1.13514e-6 * x + 0.00397297)
+                        / x.powi(6)
+                },
+                roots: vec![551.77382493033],
+                guesses: vec![400.0],
+                brackets: vec![Bounds::new(400.0, 600.0)],
+            },
             RootTest {
                 name: "Ford95 Example Nine",
                 f: |x| x.recip() + x.ln() - 100.,
