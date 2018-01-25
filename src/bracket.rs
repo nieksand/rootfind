@@ -271,6 +271,7 @@ mod tests {
         // outside
         assert_eq!(b.contains(-29.0), false);
         assert_eq!(b.contains(31.21), false);
+        assert_eq!(b.contains(f64::NAN), false);
 
         // on end points
         assert_eq!(b.contains(28.0), true);
