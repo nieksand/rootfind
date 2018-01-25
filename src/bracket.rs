@@ -344,6 +344,14 @@ mod tests {
     }
 
     #[test]
+    fn test_is_sign_change_overflow() {
+        // this passes the naive a*b<0 check because its -inf
+        let a = f64::MAX / 2.;
+        let b = f64::MIN / 2.;
+        assert_eq!(is_sign_change(a, b), true);
+    }
+
+    #[test]
     #[should_panic]
     fn test_first_bracket_negative_window() {
         let f = |x| x * x;
