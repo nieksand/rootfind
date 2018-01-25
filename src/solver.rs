@@ -405,7 +405,7 @@ mod tests {
                 d2f: |x| -800. * (-20. * x).exp(),
                 roots: vec![0.034657358821882],
                 guesses: vec![-2.5],
-                brackets: vec![Bounds::new(-0.5, 1.5)],
+                brackets: vec![Bounds::new(-1.0, 4.0)],
             },
             RootTest {
                 name: "Ford95 Example Four",
@@ -414,7 +414,7 @@ mod tests {
                 d2f: |x| (x.recip() - 25.).exp() * (2. * x + 1.) * x.powi(-4),
                 roots: vec![0.04],
                 guesses: vec![0.035],
-                brackets: vec![Bounds::new(0.03, 0.07)],
+                brackets: vec![Bounds::new(0.02, 1.0)],
             },
             RootTest {
                 name: "Ford95 Example Six",
@@ -426,7 +426,7 @@ mod tests {
                 },
                 roots: vec![0.1],
                 guesses: vec![0.15],
-                brackets: vec![Bounds::new(0.095, 1.0)],
+                brackets: vec![Bounds::new(0.05, 0.2)],
             },
             RootTest {
                 name: "Ford95 Example Seven",
@@ -435,7 +435,7 @@ mod tests {
                 d2f: |x| 380. * x.powi(18),
                 roots: vec![1.0],
                 guesses: vec![1.2],
-                brackets: vec![Bounds::new(0.7, 1.2)],
+                brackets: vec![Bounds::new(-0.5, 5.0)],
             },
             RootTest {
                 name: "Ford95 Example Eight",
@@ -447,7 +447,7 @@ mod tests {
                 },
                 roots: vec![551.77382493033],
                 guesses: vec![400.0],
-                brackets: vec![Bounds::new(400.0, 600.0)],
+                brackets: vec![Bounds::new(350.0, 850.0)],
             },
             RootTest {
                 name: "Ford95 Example Nine",
@@ -465,7 +465,7 @@ mod tests {
                 d2f: |x| (x + x.exp()).exp() * (x.exp() + 1.),
                 roots: vec![1.0],
                 guesses: vec![1.8],
-                brackets: vec![Bounds::new(-4.0, 2.0)],
+                brackets: vec![Bounds::new(0.5, 3.5)],
             },
             RootTest {
                 name: "Ford95 Example Eleven",
