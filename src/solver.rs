@@ -234,6 +234,60 @@ where
     })
 }
 
+/// Illinois variant of Regula Falsi.
+///
+/// Detailed analysis of false position variants is in:
+///
+/// *Ford, J. A. (1995). Improved algorithms of illinois-type for the numerical
+/// solution of nonlinear equations. University of Essex, Department of Computer
+/// Science.*
+///
+pub fn false_position_illinios<F>(f: &F, bounds: &Bounds, max_iter: usize) -> Result<f64, RootError>
+where
+    F: Fn(f64) -> f64,
+{
+    let mut window: Bounds = (*bounds).clone();
+    let mut f_a = f(window.a);
+    let mut f_b = f(window.b);
+
+    // ensure we started with valid bracket
+    assert!(is_sign_change(f_a, f_b));
+
+    for _ in 0..max_iter {
+        // compute x intersect of secant
+        let x_cur = (window.a * f_b - window.b * f_a) / (f_b - f_a);
+        let f_cur = f(x_cur);
+
+        // repeated endpoint
+        if x_cur == window.a {
+
+        } else if x_cur == window.b {
+
+        }
+
+        assert!(window.contains(x_cur));
+        assert_ne!(window.a, x_cur);
+        assert_ne!(window.b, x_cur);
+
+        // shrink bounds
+        if is_sign_change(f_a, f_cur) {
+            window.b = x_cur;
+            f_b = f_cur;
+        } else {
+            window.a = x_cur;
+            f_a = f_cur;
+        }
+
+        // convergence criteria
+        if window.b - window.a < 1e-9 {
+            return Ok(window.a);
+        }
+    }
+    Err(RootError::IterationLimit {
+        last_x: window.middle(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,6 +304,14 @@ mod tests {
         brackets: Vec<Bounds>,
     }
 
+    /// Table driven tests re-used for different methods.
+    ///
+    /// The Ford95 tests are from:
+    ///
+    /// *Ford, J. A. (1995). Improved algorithms of illinois-type for the numerical
+    /// solution of nonlinear equations. University of Essex, Department of Computer
+    /// Science.*
+    ///
     fn make_root_tests() -> Vec<RootTest> {
         vec![
             RootTest {
@@ -326,6 +388,84 @@ mod tests {
                 roots: vec![0.55158615249704711724768527],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 3.0)],
+            },
+            RootTest {
+                name: "Ford95 Example One",
+                f: |x| 4. * x.cos() - x.exp(),
+                df: |x| -4. * x.sin() - x.exp(),
+                d2f: |x| -4. * x.cos() - x.exp(),
+                roots: vec![0.90478821787302],
+                guesses: vec![5.0],
+                brackets: vec![Bounds::new(-1.5, 6.0)],
+            },
+            //RootTest {
+            //    name: "Ford95 Example Three",
+            //    f: |x: f64| 2. * x * (-20.0f64).exp() + 1. - 2. * (-20. * x).exp(),
+            //    df: |x| 2 * (-20.0f64).exp() - 40*,
+            //    d2f: |x| -4. * x.cos() - x.exp(),
+            //    roots: vec![0.90478821787302],
+            //    guesses: vec![1.5],
+            //    brackets: vec![Bounds::new(0.5, 1.5)],
+            //},
+            RootTest {
+                name: "Ford95 Example Four",
+                f: |x| (x.recip() - 25.).exp() - 1.,
+                df: |x| -(x.recip() - 25.).exp() * x.powi(-2),
+                d2f: |x| (x.recip() - 25.).exp() * (2. * x + 1.) * x.powi(-4),
+                roots: vec![0.04],
+                guesses: vec![0.035],
+                brackets: vec![Bounds::new(0.03, 0.07)],
+            },
+            RootTest {
+                name: "Ford95 Example Six",
+                f: |x| 10000000000. * x.powf(x.recip()) - 1.0,
+                df: |x| -10000000000. * x.powf(x.recip() - 2.) * (x.ln() - 1.),
+                d2f: |x| {
+                    10000000000. * x.powf(x.recip() - 4.)
+                        * (-3. * x + x.ln().powi(2) + 2. * (x - 1.) * x.ln() + 1.)
+                },
+                roots: vec![0.1],
+                guesses: vec![0.15],
+                brackets: vec![Bounds::new(0.095, 1.0)],
+            },
+            RootTest {
+                name: "Ford95 Example Seven",
+                f: |x| x.powi(20) - 1.,
+                df: |x| 20. * x.powi(19),
+                d2f: |x| 380. * x.powi(18),
+                roots: vec![1.0],
+                guesses: vec![1.2],
+                brackets: vec![Bounds::new(0.7, 1.2)],
+            },
+            // Example Eight goes here
+            RootTest {
+                name: "Ford95 Example Nine",
+                f: |x| x.recip() + x.ln() - 100.,
+                df: |x| (x - 1.0) / (x * x),
+                d2f: |x| (2. - x) / (x * x * x),
+                roots: vec![0.0095556044375379],
+                guesses: vec![0.01],
+                brackets: vec![Bounds::new(0.001, 100.0)],
+            },
+            RootTest {
+                name: "Ford95 Example Ten",
+                f: |x| x.exp().exp() - (1.0f64).exp().exp(),
+                df: |x| (x + x.exp()).exp(),
+                d2f: |x| (x + x.exp()).exp() * (x.exp() + 1.),
+                roots: vec![1.0],
+                guesses: vec![1.8],
+                brackets: vec![Bounds::new(-4.0, 2.0)],
+            },
+            RootTest {
+                name: "Ford95 Example Eleven",
+                f: |x| (0.01 / x).sin() - 0.01,
+                df: |x| -0.01 * (0.01 / x).cos() / (x * x),
+                d2f: |x| {
+                    (0.02 * x * (0.01 / x).cos() - 0.0001 * (0.01 / x).sin()) / (x * x * x * x)
+                },
+                roots: vec![0.99998333286109],
+                guesses: vec![0.55],
+                brackets: vec![Bounds::new(0.004, 200.0)],
             },
         ]
     }
