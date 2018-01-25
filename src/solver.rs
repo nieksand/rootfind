@@ -116,6 +116,13 @@ where
 ///
 /// * If the second derivative is also available, consider Halley's method.
 /// * If analytically computed derivatives are not available, consider Brent-Decker.
+///
+/// A fascinating history of how the algorithm developed, including the
+/// contributions of Newton, Raphson, and Simpson can be found in:
+///
+/// *Ypma, T. J. (1995). Historical development of the Newton–Raphson method.
+/// SIAM review, 37(4), 531-551.*
+///
 pub fn newton_raphson<F, C>(
     f: &F,
     start: f64,
