@@ -291,7 +291,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use convergence::DeltaX;
+    use convergence::{DeltaX, DualCriteria, FnResidual};
     use wrap::{RealFnAndFirst, RealFnAndFirstSecond};
 
     struct RootTest {
@@ -311,6 +311,11 @@ mod tests {
     /// *Ford, J. A. (1995). Improved algorithms of illinois-type for the numerical
     /// solution of nonlinear equations. University of Essex, Department of Computer
     /// Science.*
+    ///
+    /// The Costabile06 tests are from:
+    //
+    /// *Costabile, F., Gualtieri, M. I., & Luceri, R. (2006). A modification of
+    /// Muller’s method. Calcolo, 43(1), 39-50.*
     ///
     fn make_root_tests() -> Vec<RootTest> {
         vec![
@@ -478,6 +483,218 @@ mod tests {
                 guesses: vec![0.55],
                 brackets: vec![Bounds::new(0.004, 200.0)],
             },
+            RootTest {
+                name: "Costabile06 Example One",
+                f: |x| x * x * x - 1.,
+                df: |x| 3. * x * x,
+                d2f: |x| 6. * x,
+                roots: vec![1.0],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0.1, 1.3)],
+            },
+            RootTest {
+                name: "Costabile06 Example Two",
+                f: |x| x * x * (x * x / 3. + 2.0f64.sqrt() * x.sin()) - 3.0f64.sqrt() / 18.,
+                df: |x| {
+                    4. * x * x * x / 3. + 2.0f64.sqrt() * x * x * x.cos()
+                        + 2. * 2.0f64.sqrt() * x * x.sin()
+                },
+                d2f: |x| {
+                    4. * x * x - 2.0f64.sqrt() * x * x * x.sin() + 2. * 2.0f64.sqrt() * x.sin()
+                        + 4. * 2.0f64.sqrt() * x * x.cos()
+                },
+                roots: vec![0.39942229171096819451],
+                guesses: vec![1.0],
+                brackets: vec![Bounds::new(0.1, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Three",
+                f: |x| 2. * x * (-10.0f64).exp() + 1. - 2. * (-10. * x).exp(),
+                df: |x| 20. * (-10. * x).exp() + 2. * (-10.0f64).exp(),
+                d2f: |x| -200. * (-10. * x).exp(),
+                roots: vec![0.069314088687023473303],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Four",
+                f: |x| 2. * x * (-20.0f64).exp() + 1. - 2. * (-20. * x).exp(),
+                df: |x| 40. * (-20. * x).exp() + 2. * (-20.0f64).exp(),
+                d2f: |x| -800. * (-20. * x).exp(),
+                roots: vec![0.034657359020853851362],
+                guesses: vec![0.2],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Five",
+                f: |x| (1. + (1. - 5.0f64).powi(2)) * x * x - (1. - 5. * x).powi(2),
+                df: |x| 10. - 16. * x,
+                d2f: |_| -16.,
+                roots: vec![0.109611796797792],
+                guesses: vec![0.4],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Six",
+                f: |x| (1. + (1. - 10.0f64).powi(2)) * x * x - (1. - 10. * x).powi(2),
+                df: |x| 20. - 36. * x,
+                d2f: |_| -36.,
+                roots: vec![0.0524786034368102],
+                guesses: vec![0.4],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Seven",
+                f: |x| (1. + (1. - 20.0f64).powi(2)) * x * x - (1. - 20. * x).powi(2),
+                df: |x| 40. - 76. * x,
+                d2f: |_| -76.,
+                roots: vec![0.0256237476199882],
+                guesses: vec![0.4],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Eight",
+                f: |x| x * x - (1. - x).powi(5),
+                df: |x| 5. * (1. - x).powi(4) + 2. * x,
+                d2f: |x| 20. * (1. - x).powi(3) + 2.,
+                roots: vec![0.34595481584824201796],
+                guesses: vec![1.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Nine",
+                f: |x| (1. + (1. - 5.0f64).powi(4)) * x - (1. - 5. * x).powi(4),
+                df: |x| 20. * (1. - 5. * x).powi(3) + 257.,
+                d2f: |x| -300. * (1. - 5. * x).powi(2),
+                roots: vec![0.00361710817890406],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Ten",
+                f: |x| (1. + (1. - 10.0f64).powi(4)) * x - (1. - 10. * x).powi(4),
+                df: |x| 40. * (1. - 10. * x).powi(3) + 6562.,
+                d2f: |x| -1200. * (1. - 10. * x).powi(2),
+                roots: vec![0.000151471],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Eleven",
+                f: |x| (1. + (1. - 20.0f64).powi(4)) * x - (1. - 20. * x).powi(4),
+                df: |x| 80. * (1. - 20. * x).powi(3) + 130322.,
+                d2f: |x| -4800. * (1. - 20. * x).powi(2),
+                roots: vec![7.6686e-6],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Twelve",
+                f: |x| x * x + (x / 5.).sin() - 0.25,
+                df: |x| 2. * x + (1. / 5.) * (x / 5.).cos(),
+                d2f: |x| 2. - (1. / 25.) * (x / 5.).sin(),
+                roots: vec![0.40999201798913713162125838],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Thirteen",
+                f: |x| x * x + (x / 10.).sin() - 0.25,
+                df: |x| 2. * x + (1. / 10.) * (x / 10.).cos(),
+                d2f: |x| 2. - (1. / 100.) * (x / 100.).sin(),
+                roots: vec![0.45250914557764122545806719],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Fourteen",
+                f: |x| x * x + (x / 20.).sin() - 0.25,
+                df: |x| 2. * x + (1. / 20.) * (x / 20.).cos(),
+                d2f: |x| 2. - (1. / 400.) * (x / 20.).sin(),
+                roots: vec![0.47562684859606241311984234],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Fifteen",
+                f: |x| (5. * x - 1.) / (4. * x),
+                df: |x| 5. * x / 2. - 0.25,
+                d2f: |_| 2.5,
+                roots: vec![0.2],
+                guesses: vec![0.200000000035], // brutal for iterative solvers
+                brackets: vec![Bounds::new(0.01, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Sixteen",
+                f: |x| x - 3. * x.ln(),
+                df: |x| 1. - 3. / x,
+                d2f: |x| 3. / (x * x),
+                roots: vec![1.8571838602078353365],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.5, 2.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Seventeen",
+                f: |x| x * x * x - 2. * x + x.cos(),
+                df: |x| 3. * x * x - 2. - x.sin(),
+                d2f: |x| 6. * x - x.cos(),
+                roots: vec![1.3581687638286110480],
+                guesses: vec![2.0],
+                brackets: vec![Bounds::new(1.0, 2.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Eighteen",
+                f: |x| x * x + 5. * x + x.exp(),
+                df: |x| 2. * x + 5. + x.exp(),
+                d2f: |x| 2. + x.exp(),
+                roots: vec![-0.17410431211597044503],
+                guesses: vec![-1.0],
+                brackets: vec![Bounds::new(-1.0, 2.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Nineteen, Twenty, Twenty One",
+                f: |x| x.exp() - 4. * x * x,
+                df: |x| x.exp() - 8. * x,
+                d2f: |x| x.exp() - 8.,
+                roots: vec![
+                    -0.40777670940448032889,
+                    0.7148059123627778061,
+                    4.3065847282206992983,
+                ],
+                guesses: vec![-1.0, 0.5, 4.5],
+                brackets: vec![
+                    Bounds::new(-1.0, 0.0),
+                    Bounds::new(0.5, 1.0),
+                    Bounds::new(4.0, 4.5),
+                ],
+            },
+            RootTest {
+                name: "Costabile06 Example Twenty Two, Twenty Eight",
+                f: |x| x.powi(20) - 1.0,
+                df: |x| 20. * x.powi(19),
+                d2f: |x| 380. * x.powi(18),
+                roots: vec![1.0, -1.0],
+                guesses: vec![0.7, -0.7], // NR narrower converging region than Halley
+                brackets: vec![Bounds::new(0.5, 2.0), Bounds::new(-2.0, 0.5)],
+            },
+            //            RootTest {
+            //                name: "Costabile06 Example Twenty Three",
+            //                f: |x| (x-1.).powi(3) * x.exp(),
+            //                df: |x| (x-1.).powi(2) * x.exp() * (x + 2.),
+            //                d2f: |x| x.exp() * (x*x*x + 3.*x*x -3.*x -1.),
+            //                roots: vec![1.0],
+            //                guesses: vec![0.999999999995], // NR/Halley take tiny steps near root
+            //                brackets: vec![Bounds::new(0.5, 2.0)],
+            //            },
+            //            RootTest {
+            //                name: "Costabile06 Example Twenty Four",
+            //                f: |x| (x-1.).powi(5) * x.exp(),
+            //                df: |x| (x-1.).powi(4) * x.exp() * (x+4.),
+            //                d2f: |x| x.exp() * (x-1.).powi(3) * (x*x + 8.*x + 11.),
+            //                roots: vec![1.0],
+            //                guesses: vec![1.0000000005],
+            //                brackets: vec![Bounds::new(0.5, 2.0)],
+            //            },
         ]
     }
 
@@ -510,7 +727,10 @@ mod tests {
 
     #[test]
     fn test_newton_root_finding() {
-        let conv = DeltaX::new(1e-9);
+        let c1 = DeltaX::new(1e-9);
+        let c2 = FnResidual::new(5e-10);
+        let conv = DualCriteria::new(&c1, &c2);
+
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let f = RealFnAndFirst::new(&t.f, &t.df);
@@ -553,7 +773,10 @@ mod tests {
 
     #[test]
     fn test_halley_root_finding() {
-        let conv = DeltaX::new(1e-9);
+        let c1 = DeltaX::new(1e-9);
+        let c2 = FnResidual::new(5e-10);
+        let conv = DualCriteria::new(&c1, &c2);
+
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let f = RealFnAndFirstSecond::new(&t.f, &t.df, &t.d2f);
