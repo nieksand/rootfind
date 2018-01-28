@@ -615,6 +615,33 @@ mod tests {
                 guesses: vec![0.0],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
+            RootTest {
+                name: "Costabile06 Example Fifteen",
+                f: |x| (5. * x - 1.) / (4. * x),
+                df: |x| 5. * x / 2. - 0.25,
+                d2f: |_| 2.5,
+                roots: vec![0.2],
+                guesses: vec![0.200000000035], // brutal for iterative solvers
+                brackets: vec![Bounds::new(0.01, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Sixteen",
+                f: |x| x - 3. * x.ln(),
+                df: |x| 1. - 3. / x,
+                d2f: |x| 3. / (x * x),
+                roots: vec![1.8571838602078353365],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.5, 2.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Seventeen",
+                f: |x| x * x * x - 2. * x + x.cos(),
+                df: |x| 3. * x * x - 2. - x.sin(),
+                d2f: |x| 6. * x - x.cos(),
+                roots: vec![1.3581687638286110480],
+                guesses: vec![2.0],
+                brackets: vec![Bounds::new(1.0, 2.0)],
+            },
         ]
     }
 
