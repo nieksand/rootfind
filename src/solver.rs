@@ -516,6 +516,15 @@ mod tests {
                 guesses: vec![0.0],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
+            RootTest {
+                name: "Costabile06 Example Four",
+                f: |x| 2. * x * (-20.0f64).exp() + 1. - 2. * (-20. * x).exp(),
+                df: |x| 40. * (-20. * x).exp() + 2. * (-20.0f64).exp(),
+                d2f: |x| -800. * (-20. * x).exp(),
+                roots: vec![0.034657359020853851362],
+                guesses: vec![0.2],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
         ]
     }
 
