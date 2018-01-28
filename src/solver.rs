@@ -552,6 +552,42 @@ mod tests {
                 guesses: vec![0.4],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
+            RootTest {
+                name: "Costabile06 Example Eight",
+                f: |x| x * x - (1. - x).powi(5),
+                df: |x| 5. * (1. - x).powi(4) + 2. * x,
+                d2f: |x| 20. * (1. - x).powi(3) + 2.,
+                roots: vec![0.34595481584824201796],
+                guesses: vec![1.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Nine",
+                f: |x| (1. + (1. - 5.0f64).powi(4)) * x - (1. - 5. * x).powi(4),
+                df: |x| 20. * (1. - 5. * x).powi(3) + 257.,
+                d2f: |x| -300. * (1. - 5. * x).powi(2),
+                roots: vec![0.00361710817890406],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Ten",
+                f: |x| (1. + (1. - 10.0f64).powi(4)) * x - (1. - 10. * x).powi(4),
+                df: |x| 40. * (1. - 10. * x).powi(3) + 6562.,
+                d2f: |x| -1200. * (1. - 10. * x).powi(2),
+                roots: vec![0.000151471],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Eleven",
+                f: |x| (1. + (1. - 20.0f64).powi(4)) * x - (1. - 20. * x).powi(4),
+                df: |x| 80. * (1. - 20. * x).powi(3) + 130322.,
+                d2f: |x| -4800. * (1. - 20. * x).powi(2),
+                roots: vec![7.6686e-6],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
         ]
     }
 
