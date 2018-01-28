@@ -312,6 +312,11 @@ mod tests {
     /// solution of nonlinear equations. University of Essex, Department of Computer
     /// Science.*
     ///
+    /// The Costabile06 tests are from:
+    //
+    /// *Costabile, F., Gualtieri, M. I., & Luceri, R. (2006). A modification of
+    /// Muller’s method. Calcolo, 43(1), 39-50.*
+    ///
     fn make_root_tests() -> Vec<RootTest> {
         vec![
             RootTest {
@@ -477,6 +482,39 @@ mod tests {
                 roots: vec![0.99998333286109],
                 guesses: vec![0.55],
                 brackets: vec![Bounds::new(0.004, 200.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example One",
+                f: |x| x * x * x - 1.,
+                df: |x| 3. * x * x,
+                d2f: |x| 6. * x,
+                roots: vec![1.0],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0.1, 1.3)],
+            },
+            RootTest {
+                name: "Costabile06 Example Two",
+                f: |x| x * x * (x * x / 3. + 2.0f64.sqrt() * x.sin()) - 3.0f64.sqrt() / 18.,
+                df: |x| {
+                    4. * x * x * x / 3. + 2.0f64.sqrt() * x * x * x.cos()
+                        + 2. * 2.0f64.sqrt() * x * x.sin()
+                },
+                d2f: |x| {
+                    4. * x * x - 2.0f64.sqrt() * x * x * x.sin() + 2. * 2.0f64.sqrt() * x.sin()
+                        + 4. * 2.0f64.sqrt() * x * x.cos()
+                },
+                roots: vec![0.39942229171096819451],
+                guesses: vec![1.0],
+                brackets: vec![Bounds::new(0.1, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Three",
+                f: |x| 2. * x * (-10.0f64).exp() + 1. - 2. * (-10. * x).exp(),
+                df: |x| 20. * (-10. * x).exp() + 2. * (-10.0f64).exp(),
+                d2f: |x| -200. * (-10. * x).exp(),
+                roots: vec![0.069314088687023473303],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
             },
         ]
     }
