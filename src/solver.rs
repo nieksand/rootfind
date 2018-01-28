@@ -588,6 +588,33 @@ mod tests {
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
+            RootTest {
+                name: "Costabile06 Example Twelve",
+                f: |x| x * x + (x / 5.).sin() - 0.25,
+                df: |x| 2. * x + (1. / 5.) * (x / 5.).cos(),
+                d2f: |x| 2. - (1. / 25.) * (x / 5.).sin(),
+                roots: vec![0.40999201798913713162125838],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Thirteen",
+                f: |x| x * x + (x / 10.).sin() - 0.25,
+                df: |x| 2. * x + (1. / 10.) * (x / 10.).cos(),
+                d2f: |x| 2. - (1. / 100.) * (x / 100.).sin(),
+                roots: vec![0.45250914557764122545806719],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Fourteen",
+                f: |x| x * x + (x / 20.).sin() - 0.25,
+                df: |x| 2. * x + (1. / 20.) * (x / 20.).cos(),
+                d2f: |x| 2. - (1. / 400.) * (x / 20.).sin(),
+                roots: vec![0.47562684859606241311984234],
+                guesses: vec![0.0],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
         ]
     }
 
