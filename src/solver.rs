@@ -618,10 +618,10 @@ mod tests {
             RootTest {
                 name: "Costabile06 Example Fifteen",
                 f: |x| (5. * x - 1.) / (4. * x),
-                df: |x| 5. * x / 2. - 0.25,
-                d2f: |_| 2.5,
+                df: |x| 1. * (4. * x * x).recip(),
+                d2f: |x| -1. * (2. * x * x * x).recip(),
                 roots: vec![0.2],
-                guesses: vec![0.200000000035], // brutal for iterative solvers
+                guesses: vec![0.375],
                 brackets: vec![Bounds::new(0.01, 1.0)],
             },
             RootTest {
@@ -694,6 +694,24 @@ mod tests {
                 roots: vec![1.0],
                 guesses: vec![1.0000000005], // NR/Halley take tiny steps near root
                 brackets: vec![Bounds::new(0.5, 2.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Twenty Five",
+                f: |x| (10. * x - 1.) / (9. * x),
+                df: |x| (9. * x * x).recip(),
+                d2f: |x| -2. * (9. * x * x * x).recip(),
+                roots: vec![0.1],
+                guesses: vec![0.01], // hard for iterative methods coming from right
+                brackets: vec![Bounds::new(0.01, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Twenty Six",
+                f: |x| (20. * x - 1.) / (19. * x),
+                df: |x| (19. * x * x).recip(),
+                d2f: |x| -2. * (19. * x * x * x).recip(),
+                roots: vec![0.05],
+                guesses: vec![0.06], // hard for iterative methods coming from right
+                brackets: vec![Bounds::new(0.01, 1.0)],
             },
         ]
     }
