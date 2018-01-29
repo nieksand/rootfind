@@ -731,7 +731,9 @@ mod tests {
     fn test_bisection_root_finding() {
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let root = bisection(&t.f, &t.brackets[i], 100).expect("found root");
+                let root =
+                    bisection(&t.f, &t.brackets[i], 100).expect(&format!("root for {}", t.name));
+
                 assert!(
                     (root - t.roots[i]).abs() < 1e-8,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
@@ -763,7 +765,9 @@ mod tests {
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let f = RealFnAndFirst::new(&t.f, &t.df);
-                let root = newton_raphson(&f, t.guesses[i], &conv, 100).expect("found root");
+                let root = newton_raphson(&f, t.guesses[i], &conv, 100)
+                    .expect(&format!("root for {}", t.name));
+
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
@@ -809,7 +813,9 @@ mod tests {
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let f = RealFnAndFirstSecond::new(&t.f, &t.df, &t.d2f);
-                let root = halley_method(&f, t.guesses[i], &conv, 100).expect("found root");
+                let root = halley_method(&f, t.guesses[i], &conv, 100)
+                    .expect(&format!("root for {}", t.name));
+
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
