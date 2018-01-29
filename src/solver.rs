@@ -677,24 +677,24 @@ mod tests {
                 guesses: vec![0.7, -0.7], // NR narrower converging region than Halley
                 brackets: vec![Bounds::new(0.5, 2.0), Bounds::new(-2.0, 0.5)],
             },
-            //            RootTest {
-            //                name: "Costabile06 Example Twenty Three",
-            //                f: |x| (x-1.).powi(3) * x.exp(),
-            //                df: |x| (x-1.).powi(2) * x.exp() * (x + 2.),
-            //                d2f: |x| x.exp() * (x*x*x + 3.*x*x -3.*x -1.),
-            //                roots: vec![1.0],
-            //                guesses: vec![0.999999999995], // NR/Halley take tiny steps near root
-            //                brackets: vec![Bounds::new(0.5, 2.0)],
-            //            },
-            //            RootTest {
-            //                name: "Costabile06 Example Twenty Four",
-            //                f: |x| (x-1.).powi(5) * x.exp(),
-            //                df: |x| (x-1.).powi(4) * x.exp() * (x+4.),
-            //                d2f: |x| x.exp() * (x-1.).powi(3) * (x*x + 8.*x + 11.),
-            //                roots: vec![1.0],
-            //                guesses: vec![1.0000000005],
-            //                brackets: vec![Bounds::new(0.5, 2.0)],
-            //            },
+            RootTest {
+                name: "Costabile06 Example Twenty Three",
+                f: |x| (x - 1.).powi(3) * x.exp(),
+                df: |x| (x - 1.).powi(2) * x.exp() * (x + 2.),
+                d2f: |x| x.exp() * (x * x * x + 3. * x * x - 3. * x - 1.),
+                roots: vec![1.0],
+                guesses: vec![0.9999999995], // NR/Halley take tiny steps near root
+                brackets: vec![Bounds::new(0.5, 2.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Twenty Four",
+                f: |x| (x - 1.).powi(5) * x.exp(),
+                df: |x| (x - 1.).powi(4) * x.exp() * (x + 4.),
+                d2f: |x| x.exp() * (x - 1.).powi(3) * (x * x + 8. * x + 11.),
+                roots: vec![1.0],
+                guesses: vec![1.0000000005], // NR/Halley take tiny steps near root
+                brackets: vec![Bounds::new(0.5, 2.0)],
+            },
         ]
     }
 
@@ -704,7 +704,7 @@ mod tests {
             for i in 0..t.roots.len() {
                 let root = bisection(&t.f, &t.brackets[i], 100).expect("found root");
                 assert!(
-                    (root - t.roots[i]).abs() < 1e-9,
+                    (root - t.roots[i]).abs() < 1e-8,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
                 );
             }
@@ -727,8 +727,8 @@ mod tests {
 
     #[test]
     fn test_newton_root_finding() {
-        let c1 = DeltaX::new(1e-9);
-        let c2 = FnResidual::new(5e-10);
+        let c1 = DeltaX::new(1e-8);
+        let c2 = FnResidual::new(1e-9);
         let conv = DualCriteria::new(&c1, &c2);
 
         for t in make_root_tests() {
@@ -773,8 +773,8 @@ mod tests {
 
     #[test]
     fn test_halley_root_finding() {
-        let c1 = DeltaX::new(1e-9);
-        let c2 = FnResidual::new(5e-10);
+        let c1 = DeltaX::new(1e-8);
+        let c2 = FnResidual::new(1e-9);
         let conv = DualCriteria::new(&c1, &c2);
 
         for t in make_root_tests() {
