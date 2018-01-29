@@ -721,7 +721,7 @@ mod tests {
                 df: |x| x.exp() - x.sin(),
                 d2f: |x| (-x).exp() - x.cos(),
                 roots: vec![1.74613953040801241765070309],
-                guesses: vec![1.746139523], // iterative methods suffer here
+                guesses: vec![1.746139531], // iterative methods suffer here
                 brackets: vec![Bounds::new(1.0, 2.0)],
             },
         ]
