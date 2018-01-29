@@ -312,7 +312,9 @@ mod tests {
     /// solution of nonlinear equations. University of Essex, Department of Computer
     /// Science.*
     ///
-    /// The Costabile06 tests are from:
+    /// The Costabile06 tests include examples which are particularly tough for
+    /// pure forms of Newton-Raphson and Halley's Method.  See the code comments
+    /// on examples twenty two through twenty eight.  These all come from:
     //
     /// *Costabile, F., Gualtieri, M. I., & Luceri, R. (2006). A modification of
     /// Muller’s method. Calcolo, 43(1), 39-50.*
@@ -712,6 +714,15 @@ mod tests {
                 roots: vec![0.05],
                 guesses: vec![0.06], // hard for iterative methods coming from right
                 brackets: vec![Bounds::new(0.01, 1.0)],
+            },
+            RootTest {
+                name: "Costabile06 Example Twenty Seven",
+                f: |x| (-x).exp() + x.cos(),
+                df: |x| x.exp() - x.sin(),
+                d2f: |x| (-x).exp() - x.cos(),
+                roots: vec![1.74613953040801241765070309],
+                guesses: vec![1.746139523], // iterative methods suffer here
+                brackets: vec![Bounds::new(1.0, 2.0)],
             },
         ]
     }
