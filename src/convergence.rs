@@ -142,7 +142,9 @@ mod tests {
     fn test_fn_residual_convergence() {
         let c = FnResidual::new(1e-3);
         assert_eq!(false, c.is_converged(0.0, 1e-10, 2e-3));
+        assert_eq!(false, c.is_converged(0.0, 1e-10, -2e-3));
         assert_eq!(true, c.is_converged(0.0, 1e-10, 9e-4));
+        assert_eq!(true, c.is_converged(0.0, 1e-10, -9e-4));
     }
 
     #[test]
