@@ -82,7 +82,8 @@ fn iterative_root_find<F, I, C>(
     max_iter: usize,
 ) -> Result<f64, RootError>
 where
-    I: Fn(&F, f64) -> Result<(f64, f64), RootError>,
+    F: RealFnEval,
+    I: Fn(&F, f64) -> Result<f64, RootError>,
     C: IsConverged,
 {
     assert!(start.is_finite());
@@ -93,9 +94,8 @@ where
     // stay inside maximum iteration count
     for _ in 0..max_iter {
         // invoke iteration method
-        let t = iterate(f, x_pre)?;
-        x_cur = t.0;
-        let f_cur = t.1;
+        x_cur = iterate(f, x_pre)?;
+        let f_cur = f.eval_f(x_cur);
 
         // check convergence
         if finish.is_converged(x_pre, x_cur, f_cur) {
@@ -138,7 +138,7 @@ where
 
 /// Evaluate a single iteration for Newton's method.  Returns an error if the
 /// derivative evaluates to zero.  Returns (x_new, f(x_new)) otherwise.
-fn nr_iteration<F>(f: &F, x: f64) -> Result<(f64, f64), RootError>
+fn nr_iteration<F>(f: &F, x: f64) -> Result<f64, RootError>
 where
     F: RealFnEval + RealDfEval,
 {
@@ -151,7 +151,7 @@ where
     if !x_new.is_finite() {
         return Err(RootError::IteratedToNaN { x });
     }
-    Ok((x_new, f_x))
+    Ok(x_new)
 }
 
 /// Root finding using Halley's method.
@@ -180,7 +180,7 @@ where
 
 /// Evaluate a single iteration for Halley's method.  Returns (x_new, f(x_new))
 /// on success.
-fn halley_iteration<F>(f: &F, x: f64) -> Result<(f64, f64), RootError>
+fn halley_iteration<F>(f: &F, x: f64) -> Result<f64, RootError>
 where
     F: RealFnEval + RealDfEval + RealD2fEval,
 {
@@ -196,7 +196,7 @@ where
     if !x_new.is_finite() {
         return Err(RootError::IteratedToNaN { x });
     }
-    Ok((x_new, f_x))
+    Ok(x_new)
 }
 
 /// Root finding via Bisection Method.
