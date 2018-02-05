@@ -60,10 +60,10 @@ use convergence::IsConverged;
 pub enum RootError {
     /// Derivative went to zero for method that depends on it to determine next
     /// step.
-    ZeroDerivative { x: f64 },
+    ZeroDerivative { x_cur: f64 },
 
     /// The solver computed a NaN for its next step x-value.
-    IteratedToNaN { x: f64 },
+    IteratedToNaN { x_new: f64 },
 
     /// Iteration limit was reached.
     IterationLimit { last_x: f64 },
@@ -83,7 +83,7 @@ fn iterative_root_find<F, I, C>(
 ) -> Result<f64, RootError>
 where
     F: RealFnEval,
-    I: Fn(&F, f64) -> Result<f64, RootError>,
+    I: Fn(&F, f64, f64) -> Result<f64, RootError>,
     C: IsConverged,
 {
     assert!(start.is_finite());
@@ -91,11 +91,14 @@ where
     let mut x_pre = start;
     let mut x_cur = start;
 
+    let mut f_pre = f.eval_f(x_pre);
+    let mut f_cur;
+
     // stay inside maximum iteration count
     for _ in 0..max_iter {
         // invoke iteration method
-        x_cur = iterate(f, x_pre)?;
-        let f_cur = f.eval_f(x_cur);
+        x_cur = iterate(f, x_pre, f_pre)?;
+        f_cur = f.eval_f(x_cur);
 
         // check convergence
         if finish.is_converged(x_pre, x_cur, f_cur) {
@@ -103,6 +106,7 @@ where
         }
 
         x_pre = x_cur;
+        f_pre = f_cur;
     }
     return Err(RootError::IterationLimit { last_x: x_cur });
 }
@@ -133,23 +137,22 @@ where
     F: RealFnEval + RealDfEval,
     C: IsConverged,
 {
-    iterative_root_find(f, &nr_iteration, start, finish, max_iter)
+    iterative_root_find(f, &nr_step, start, finish, max_iter)
 }
 
-/// Evaluate a single iteration for Newton's method.  Returns an error if the
-/// derivative evaluates to zero.  Returns (x_new, f(x_new)) otherwise.
-fn nr_iteration<F>(f: &F, x: f64) -> Result<f64, RootError>
+/// Evaluate a single iteration for the Newton-Raphson method.  Returns x_new on
+/// success.
+fn nr_step<F>(f: &F, x_cur: f64, f_cur: f64) -> Result<f64, RootError>
 where
-    F: RealFnEval + RealDfEval,
+    F: RealDfEval,
 {
-    let denom = f.eval_df(x);
+    let denom = f.eval_df(x_cur);
     if denom == 0.0 {
-        return Err(RootError::ZeroDerivative { x });
+        return Err(RootError::ZeroDerivative { x_cur });
     }
-    let f_x = f.eval_f(x);
-    let x_new = x - f_x / denom;
+    let x_new = x_cur - f_cur / denom;
     if !x_new.is_finite() {
-        return Err(RootError::IteratedToNaN { x });
+        return Err(RootError::IteratedToNaN { x_new });
     }
     Ok(x_new)
 }
@@ -175,26 +178,24 @@ where
     F: RealFnEval + RealDfEval + RealD2fEval,
     C: IsConverged,
 {
-    iterative_root_find(f, &halley_iteration, start, finish, max_iter)
+    iterative_root_find(f, &halley_step, start, finish, max_iter)
 }
 
-/// Evaluate a single iteration for Halley's method.  Returns (x_new, f(x_new))
-/// on success.
-fn halley_iteration<F>(f: &F, x: f64) -> Result<f64, RootError>
+/// Evaluate a single iteration for Halley's method.  Returns x_new on success.
+fn halley_step<F>(f: &F, x_cur: f64, f_cur: f64) -> Result<f64, RootError>
 where
-    F: RealFnEval + RealDfEval + RealD2fEval,
+    F: RealDfEval + RealD2fEval,
 {
-    let f_x = f.eval_f(x);
-    let df_x = f.eval_df(x);
-    let d2f_x = f.eval_d2f(x);
+    let df_cur = f.eval_df(x_cur);
+    let d2f_cur = f.eval_d2f(x_cur);
 
-    if df_x == 0.0 {
-        return Err(RootError::ZeroDerivative { x });
+    if df_cur == 0.0 {
+        return Err(RootError::ZeroDerivative { x_cur });
     }
 
-    let x_new = x - (2.0 * f_x * df_x) / (2.0 * df_x * df_x - f_x * d2f_x);
+    let x_new = x_cur - (2.0 * f_cur * df_cur) / (2.0 * df_cur * df_cur - f_cur * d2f_cur);
     if !x_new.is_finite() {
-        return Err(RootError::IteratedToNaN { x });
+        return Err(RootError::IteratedToNaN { x_new });
     }
     Ok(x_new)
 }
