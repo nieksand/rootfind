@@ -87,6 +87,11 @@ impl Bounds {
     pub fn contains(&self, x: f64) -> bool {
         x >= self.a && x <= self.b
     }
+
+    /// Diameter of interval.
+    pub fn size(&self) -> f64 {
+        self.b - self.a
+    }
 }
 
 /// BracketGenerator is an iterator that emits root-holding brackets.
@@ -283,6 +288,14 @@ mod tests {
 
         // inside
         assert_eq!(b.contains(29.631), true);
+    }
+
+    #[test]
+    fn test_bounds_size() {
+        assert_eq!(0.0, Bounds::new(0., 0.).size());
+        assert_eq!(4.0, Bounds::new(-7.2, -3.2).size());
+        assert_eq!(4.0, Bounds::new(3.2, 7.2).size());
+        assert_eq!(6.4, Bounds::new(-3.2, 3.2).size());
     }
 
     #[test]
