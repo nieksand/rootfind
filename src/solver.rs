@@ -35,13 +35,15 @@
 //! ```
 //! use rootfind::bracket::Bounds;
 //! use rootfind::solver::bisection;
+//! use rootfind::wrap::RealFn;
 //!
 //! // function... no derivatives needed!
 //! let in_f = |x: f64| -x*x + 2.0*x + 1.0;
+//! let f = RealFn::new(&in_f);
 //!
 //! // invoke bisection
 //! let max_iterations = 20;
-//! let root = bisection(&in_f, &Bounds::new(2.0, 3.0), 100).expect("root");
+//! let root = bisection(&f, &Bounds::new(2.0, 3.0), 100).expect("root");
 //!
 //! // root at x=1+sqrt(2)
 //! assert!((root-2.41421356237).abs() < 1e-9);
@@ -206,17 +208,17 @@ where
 /// convergence is linear.
 pub fn bisection<F>(f: &F, bounds: &Bounds, max_iter: usize) -> Result<f64, RootError>
 where
-    F: Fn(f64) -> f64,
+    F: RealFnEval,
 {
     let mut window: Bounds = (*bounds).clone();
-    let mut f_a = f(window.a);
+    let mut f_a = f.eval_f(window.a);
 
     // ensure we started with valid bracket
-    assert!(is_sign_change(f_a, f(window.b)));
+    assert!(is_sign_change(f_a, f.eval_f(window.b)));
 
     for _ in 0..max_iter {
         let mid = window.middle();
-        let f_mid = f(mid);
+        let f_mid = f.eval_f(mid);
 
         if is_sign_change(f_a, f_mid) {
             window.b = mid;
@@ -293,7 +295,7 @@ where
 mod tests {
     use super::*;
     use convergence::{DeltaX, DualCriteria, FnResidual};
-    use wrap::{RealFnAndFirst, RealFnAndFirstSecond};
+    use wrap::{RealFn, RealFnAndFirst, RealFnAndFirstSecond};
 
     struct RootTest {
         name: &'static str,
@@ -732,8 +734,9 @@ mod tests {
     fn test_bisection_root_finding() {
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
+                let f = RealFn::new(&t.f);
                 let root =
-                    bisection(&t.f, &t.brackets[i], 100).expect(&format!("root for {}", t.name));
+                    bisection(&f, &t.brackets[i], 100).expect(&format!("root for {}", t.name));
 
                 assert!(
                     (root - t.roots[i]).abs() < 1e-8,
@@ -747,13 +750,14 @@ mod tests {
     #[should_panic]
     fn test_bisection_no_straddle() {
         let f = |x| x * x;
-        let _ = bisection(&f, &Bounds::new(-10.0, -5.0), 100);
+        let _ = bisection(&RealFn::new(&f), &Bounds::new(-10.0, -5.0), 100);
     }
 
     #[test]
     fn test_bisection_centered_root() {
         let f = |x| x;
-        let root = bisection(&f, &Bounds::new(-1000000.0, 1000000.0), 100).expect("found root");
+        let root = bisection(&RealFn::new(&f), &Bounds::new(-1000000.0, 1000000.0), 100)
+            .expect("found root");
         assert!(root.abs() < 1e-9, "wanted root x=0");
     }
 
