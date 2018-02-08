@@ -730,8 +730,11 @@ mod tests {
         ]
     }
 
+    /*
+     * Table-driven tests
+     */
     #[test]
-    fn test_bisection_root_finding() {
+    fn test_table_bisection() {
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
                 let f = RealFn::new(&t.f);
@@ -747,22 +750,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn test_bisection_no_straddle() {
-        let f = |x| x * x;
-        let _ = bisection(&RealFn::new(&f), &Bounds::new(-10.0, -5.0), 100);
-    }
-
-    #[test]
-    fn test_bisection_centered_root() {
-        let f = |x| x;
-        let root = bisection(&RealFn::new(&f), &Bounds::new(-1000000.0, 1000000.0), 100)
-            .expect("found root");
-        assert!(root.abs() < 1e-9, "wanted root x=0");
-    }
-
-    #[test]
-    fn test_newton_root_finding() {
+    fn test_table_newton() {
         let c1 = DeltaX::new(1e-8);
         let c2 = FnResidual::new(1e-9);
         let conv = DualCriteria::new(&c1, &c2);
@@ -781,6 +769,47 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_table_halley() {
+        let c1 = DeltaX::new(1e-8);
+        let c2 = FnResidual::new(1e-9);
+        let conv = DualCriteria::new(&c1, &c2);
+
+        for t in make_root_tests() {
+            for i in 0..t.roots.len() {
+                let f = RealFnAndFirstSecond::new(&t.f, &t.df, &t.d2f);
+                let root = halley_method(&f, t.guesses[i], &conv, 100)
+                    .expect(&format!("root for {}", t.name));
+
+                assert!(
+                    (root - t.roots[i]).abs() < 1e-9,
+                    format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
+                );
+            }
+        }
+    }
+
+    /*
+     * Bisection corner cases
+     */
+    #[test]
+    #[should_panic]
+    fn test_bisection_no_straddle() {
+        let f = |x| x * x;
+        let _ = bisection(&RealFn::new(&f), &Bounds::new(-10.0, -5.0), 100);
+    }
+
+    #[test]
+    fn test_bisection_centered_root() {
+        let f = |x| x;
+        let root = bisection(&RealFn::new(&f), &Bounds::new(-1000000.0, 1000000.0), 100)
+            .expect("found root");
+        assert!(root.abs() < 1e-9, "wanted root x=0");
+    }
+
+    /*
+     * Newton-Raphson corner cases.
+     */
     #[test]
     #[should_panic]
     fn test_newton_nonfinite_start() {
@@ -809,26 +838,9 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_halley_root_finding() {
-        let c1 = DeltaX::new(1e-8);
-        let c2 = FnResidual::new(1e-9);
-        let conv = DualCriteria::new(&c1, &c2);
-
-        for t in make_root_tests() {
-            for i in 0..t.roots.len() {
-                let f = RealFnAndFirstSecond::new(&t.f, &t.df, &t.d2f);
-                let root = halley_method(&f, t.guesses[i], &conv, 100)
-                    .expect(&format!("root for {}", t.name));
-
-                assert!(
-                    (root - t.roots[i]).abs() < 1e-9,
-                    format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
-                );
-            }
-        }
-    }
-
+    /*
+     * Halley's Method corner cases.
+     */
     #[test]
     #[should_panic]
     fn test_halley_nonfinite_start() {
@@ -841,6 +853,9 @@ mod tests {
         let _ = halley_method(&f, f64::NAN, &conv, 100);
     }
 
+    /*
+     * General pathologies for iterative methods.
+     */
     #[test]
     fn test_pathology_microstep() {
         // f(x) = 0.01*e^(1/x)-1
