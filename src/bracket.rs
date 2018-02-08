@@ -146,6 +146,8 @@ where
 /// precision is lost that result is zero--i.e. multiplying two subnormal floats
 /// together.  This is illustrated in test_is_sign_change_underflow().
 pub fn is_sign_change(lhs: f64, rhs: f64) -> bool {
+    assert!(!lhs.is_nan());
+    assert!(!rhs.is_nan());
     lhs.signum() != rhs.signum()
 }
 
@@ -366,6 +368,18 @@ mod tests {
         let a = f64::MAX / 2.;
         let b = f64::MIN / 2.;
         assert_eq!(is_sign_change(a, b), true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_is_sign_change_nan_lhs() {
+        let _ = is_sign_change(f64::NAN, 1.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_is_sign_change_nan_rhs() {
+        let _ = is_sign_change(1.0, f64::NAN);
     }
 
     #[test]
