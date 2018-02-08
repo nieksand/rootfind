@@ -397,7 +397,7 @@ mod tests {
                 },
                 roots: vec![0.55158615249704711724768527],
                 guesses: vec![0.5],
-                brackets: vec![Bounds::new(0.0, 3.0)],
+                brackets: vec![Bounds::new(0.0, 0.69)],
             },
             RootTest {
                 name: "Ford95 Example One",
