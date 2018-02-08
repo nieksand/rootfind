@@ -12,6 +12,7 @@ Currently features:
 * Newton-Raphson
 * Halley's Method
 * Bisection
+* Illinois False Position
 * Bracket generation
 
 This package aims to provide robust algorithms for finding real roots of
