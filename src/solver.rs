@@ -30,11 +30,11 @@
 //! assert!((root-2.41421356237).abs() < 1e-9);
 //! ```
 //!
-//! Using Bisection Method:
+//! Using Bisection Method or False Position:
 //!
 //! ```
 //! use rootfind::bracket::Bounds;
-//! use rootfind::solver::bisection;
+//! use rootfind::solver::{bisection, false_position_illinios};
 //! use rootfind::wrap::RealFn;
 //!
 //! // function... no derivatives needed!
@@ -44,8 +44,11 @@
 //! // invoke bisection
 //! let max_iterations = 20;
 //! let root = bisection(&f, &Bounds::new(2.0, 3.0), 100).expect("root");
+//! assert!((root-2.41421356237).abs() < 1e-9);
 //!
-//! // root at x=1+sqrt(2)
+//! // invoke false position
+//! let max_iterations = 20;
+//! let root = false_position_illinios(&f, &Bounds::new(2.0, 3.0), 100).expect("root");
 //! assert!((root-2.41421356237).abs() < 1e-9);
 //! ```
 
@@ -247,43 +250,64 @@ where
 ///
 pub fn false_position_illinios<F>(f: &F, bounds: &Bounds, max_iter: usize) -> Result<f64, RootError>
 where
-    F: Fn(f64) -> f64,
+    F: RealFnEval,
 {
     let mut window: Bounds = (*bounds).clone();
-    let mut f_a = f(window.a);
-    let mut f_b = f(window.b);
-
-    // ensure we started with valid bracket
+    let mut f_a = f.eval_f(window.a);
+    let mut f_b = f.eval_f(window.b);
+    assert!(f_a.is_finite());
+    assert!(f_b.is_finite());
     assert!(is_sign_change(f_a, f_b));
 
+    let mut bias: f64 = 0.0;
     for _ in 0..max_iter {
-        // compute x intersect of secant
-        let x_cur = (window.a * f_b - window.b * f_a) / (f_b - f_a);
-        let f_cur = f(x_cur);
+        let fga = if bias < 0.0 { f_a * -bias } else { f_a };
+        let fgb = if bias > 0.0 { f_b * bias } else { f_b };
 
-        // repeated endpoint
-        if x_cur == window.a {
-
-        } else if x_cur == window.b {
-
+        // interpolant too flat, bisect instead
+        if (fga * fgb).abs() < 1e-12 {
+            let x_mid = window.middle();
+            let f_mid = f.eval_f(x_mid);
+            if is_sign_change(f_a, f_mid) {
+                window.b = x_mid;
+                f_b = f_mid;
+            } else {
+                window.a = x_mid;
+                f_a = f_mid;
+            }
+            bias = 0.0;
         }
+        // false position step
+        else {
+            let x_new = (window.a * fgb - window.b * fga) / (fgb - fga);
+            let f_new = f.eval_f(x_new);
+            assert!(window.contains(x_new));
+            assert!(f_new.is_finite());
 
-        assert!(window.contains(x_cur));
-        assert_ne!(window.a, x_cur);
-        assert_ne!(window.b, x_cur);
+            if is_sign_change(f_a, f_new) {
+                window.b = x_new;
+                f_b = f_new;
 
-        // shrink bounds
-        if is_sign_change(f_a, f_cur) {
-            window.b = x_cur;
-            f_b = f_cur;
-        } else {
-            window.a = x_cur;
-            f_a = f_cur;
+                if bias >= 0.0 {
+                    bias = -1.0;
+                } else {
+                    bias *= 0.5;
+                }
+            } else {
+                window.a = x_new;
+                f_a = f_new;
+
+                if bias <= 0.0 {
+                    bias = 1.0;
+                } else {
+                    bias *= 0.5;
+                }
+            }
         }
 
         // convergence criteria
         if window.b - window.a < 1e-9 {
-            return Ok(window.a);
+            return Ok(window.middle());
         }
     }
     Err(RootError::IterationLimit {
@@ -783,6 +807,22 @@ mod tests {
 
                 assert!(
                     (root - t.roots[i]).abs() < 1e-9,
+                    format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_table_illinois() {
+        for t in make_root_tests() {
+            for i in 0..t.roots.len() {
+                let f = RealFn::new(&t.f);
+                let root = false_position_illinios(&f, &t.brackets[i], 100)
+                    .expect(&format!("root for {}", t.name));
+
+                assert!(
+                    (root - t.roots[i]).abs() < 1e-8,
                     format!("{} root wanted={}, got={}", t.name, t.roots[i], root)
                 );
             }
