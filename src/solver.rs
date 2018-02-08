@@ -331,98 +331,14 @@ mod tests {
         brackets: Vec<Bounds>,
     }
 
-    /// Table driven tests re-used for different methods.
-    ///
     /// The Ford95 tests are from:
     ///
     /// *Ford, J. A. (1995). Improved algorithms of illinois-type for the numerical
     /// solution of nonlinear equations. University of Essex, Department of Computer
     /// Science.*
     ///
-    /// The Costabile06 tests include examples which are particularly tough for
-    /// pure forms of Newton-Raphson and Halley's Method.  See the code comments
-    /// on examples twenty two through twenty eight.  These all come from:
-    //
-    /// *Costabile, F., Gualtieri, M. I., & Luceri, R. (2006). A modification of
-    /// Muller’s method. Calcolo, 43(1), 39-50.*
-    ///
-    fn make_root_tests() -> Vec<RootTest> {
+    fn make_root_tests_ford95() -> Vec<RootTest> {
         vec![
-            RootTest {
-                name: "Factored Parabola",
-                f: |x| (x - 5.0) * (x - 4.0),
-                df: |x| 2.0 * x - 9.0,
-                d2f: |_| 2.0,
-                roots: vec![5.0, 4.0],
-                guesses: vec![5.8, 3.8],
-                brackets: vec![Bounds::new(4.5, 100.0), Bounds::new(-100000.0, 4.01)],
-            },
-            RootTest {
-                name: "Wikipedia NR Parabola",
-                f: |x| x * x - 612.0,
-                df: |x| 2.0 * x,
-                d2f: |_| 2.0,
-                roots: vec![-24.7386337537, 24.7386337537],
-                guesses: vec![-10.0, 10.0],
-                brackets: vec![Bounds::new(-30.0, 10.0), Bounds::new(10.0, 30.0)],
-            },
-            RootTest {
-                name: "Wikipedia NR Trigonometry",
-                f: |x| x.cos() - x * x * x,
-                df: |x| -x.sin() - 3. * x * x,
-                d2f: |x| -x.cos() - 6. * x,
-                roots: vec![0.865474033102],
-                guesses: vec![0.5],
-                brackets: vec![Bounds::new(0.0, 1.0)],
-            },
-            RootTest {
-                name: "Wikipedia Bisection Cubic",
-                f: |x| x * x * x - x - 2.0,
-                df: |x| 3.0 * x * x - 1.0,
-                d2f: |x| 6.0 * x,
-                roots: vec![1.52137970680457],
-                guesses: vec![1.0],
-                brackets: vec![Bounds::new(1.0, 2.0)],
-            },
-            RootTest {
-                name: "Isaac Newton's Secant Example",
-                f: |x| x * x * x + 10.0 * x * x - 7.0 * x - 44.0,
-                df: |x| 3.0 * x * x + 20.0 * x - 7.0,
-                d2f: |x| 6.0 * x + 20.0,
-                roots: vec![2.20681731724844],
-                guesses: vec![2.2],
-                brackets: vec![Bounds::new(2.0, 2.3)],
-            },
-            RootTest {
-                name: "Isaac Newton's NR Example",
-                f: |x| x * x * x - 2.0 * x - 5.0,
-                df: |x| 3.0 * x * x - 2.0,
-                d2f: |x| 6.0 * x,
-                roots: vec![2.0945514815423265],
-                guesses: vec![2.0],
-                brackets: vec![Bounds::new(2.0, 3.0)],
-            },
-            RootTest {
-                name: "Thomas Simpson NR Example",
-                f: |x| {
-                    (1. - x).sqrt() + (1. - 2. * x * x).sqrt() + (1. - 3. * x * x * x).sqrt() - 2.
-                },
-                df: |x| {
-                    -2. * x * (1. - 2. * x * x).sqrt().recip()
-                        - 9. * x * x * (1. - 3. * x * x * x).sqrt().recip() / 2.
-                        - 1. * (1. - x).sqrt().recip() / 2.
-                },
-                d2f: |x| {
-                    -9. * x * (1. - 3. * x * x * x).sqrt().recip()
-                        - 4. * x * x * (1. - 2. * x * x).powf(1.5)
-                        - 2. * (1. - 2. * x * x).sqrt().recip()
-                        - 81. * x * x * x * x * (1. - 3. * x * x * x).powf(1.5) / 4.
-                        - 1. * (1. - x).powf(1.5) / 4.
-                },
-                roots: vec![0.55158615249704711724768527],
-                guesses: vec![0.5],
-                brackets: vec![Bounds::new(0.0, 0.69)],
-            },
             RootTest {
                 name: "Ford95 Example One",
                 f: |x| 4. * x.cos() - x.exp(),
@@ -512,6 +428,20 @@ mod tests {
                 guesses: vec![0.55],
                 brackets: vec![Bounds::new(0.004, 200.0)],
             },
+        ]
+    }
+
+    /// The Costabile06 tests are from:
+    ///
+    /// *Costabile, F., Gualtieri, M. I., & Luceri, R. (2006). A modification of
+    /// Muller’s method. Calcolo, 43(1), 39-50.*
+    ///
+    /// They include cases which are particularly tough for pure forms of
+    /// Newton-Raphson and Halley's Method.  See the code comments on examples
+    /// twenty two through twenty eight.  These all come from:
+    ///
+    fn make_root_tests_costabile06() -> Vec<RootTest> {
+        vec![
             RootTest {
                 name: "Costabile06 Example One",
                 f: |x| x * x * x - 1.,
@@ -752,6 +682,97 @@ mod tests {
                 brackets: vec![Bounds::new(1.0, 2.0)],
             },
         ]
+    }
+
+    /// These tests have miscellaneous pedigrees.  Some are originals.
+    ///
+    fn make_root_tests_misc() -> Vec<RootTest> {
+        vec![
+            RootTest {
+                name: "Factored Parabola",
+                f: |x| (x - 5.0) * (x - 4.0),
+                df: |x| 2.0 * x - 9.0,
+                d2f: |_| 2.0,
+                roots: vec![5.0, 4.0],
+                guesses: vec![5.8, 3.8],
+                brackets: vec![Bounds::new(4.5, 100.0), Bounds::new(-100000.0, 4.01)],
+            },
+            RootTest {
+                name: "Wikipedia NR Parabola",
+                f: |x| x * x - 612.0,
+                df: |x| 2.0 * x,
+                d2f: |_| 2.0,
+                roots: vec![-24.7386337537, 24.7386337537],
+                guesses: vec![-10.0, 10.0],
+                brackets: vec![Bounds::new(-30.0, 10.0), Bounds::new(10.0, 30.0)],
+            },
+            RootTest {
+                name: "Wikipedia NR Trigonometry",
+                f: |x| x.cos() - x * x * x,
+                df: |x| -x.sin() - 3. * x * x,
+                d2f: |x| -x.cos() - 6. * x,
+                roots: vec![0.865474033102],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 1.0)],
+            },
+            RootTest {
+                name: "Wikipedia Bisection Cubic",
+                f: |x| x * x * x - x - 2.0,
+                df: |x| 3.0 * x * x - 1.0,
+                d2f: |x| 6.0 * x,
+                roots: vec![1.52137970680457],
+                guesses: vec![1.0],
+                brackets: vec![Bounds::new(1.0, 2.0)],
+            },
+            RootTest {
+                name: "Isaac Newton's Secant Example",
+                f: |x| x * x * x + 10.0 * x * x - 7.0 * x - 44.0,
+                df: |x| 3.0 * x * x + 20.0 * x - 7.0,
+                d2f: |x| 6.0 * x + 20.0,
+                roots: vec![2.20681731724844],
+                guesses: vec![2.2],
+                brackets: vec![Bounds::new(2.0, 2.3)],
+            },
+            RootTest {
+                name: "Isaac Newton's NR Example",
+                f: |x| x * x * x - 2.0 * x - 5.0,
+                df: |x| 3.0 * x * x - 2.0,
+                d2f: |x| 6.0 * x,
+                roots: vec![2.0945514815423265],
+                guesses: vec![2.0],
+                brackets: vec![Bounds::new(2.0, 3.0)],
+            },
+            RootTest {
+                name: "Thomas Simpson NR Example",
+                f: |x| {
+                    (1. - x).sqrt() + (1. - 2. * x * x).sqrt() + (1. - 3. * x * x * x).sqrt() - 2.
+                },
+                df: |x| {
+                    -2. * x * (1. - 2. * x * x).sqrt().recip()
+                        - 9. * x * x * (1. - 3. * x * x * x).sqrt().recip() / 2.
+                        - 1. * (1. - x).sqrt().recip() / 2.
+                },
+                d2f: |x| {
+                    -9. * x * (1. - 3. * x * x * x).sqrt().recip()
+                        - 4. * x * x * (1. - 2. * x * x).powf(1.5)
+                        - 2. * (1. - 2. * x * x).sqrt().recip()
+                        - 81. * x * x * x * x * (1. - 3. * x * x * x).powf(1.5) / 4.
+                        - 1. * (1. - x).powf(1.5) / 4.
+                },
+                roots: vec![0.55158615249704711724768527],
+                guesses: vec![0.5],
+                brackets: vec![Bounds::new(0.0, 0.69)],
+            },
+        ]
+    }
+
+    /// Table driven tests re-used for different methods.
+    fn make_root_tests() -> Vec<RootTest> {
+        let mut v = Vec::new();
+        v.extend(make_root_tests_ford95());
+        v.extend(make_root_tests_costabile06());
+        v.extend(make_root_tests_misc());
+        v
     }
 
     /*
