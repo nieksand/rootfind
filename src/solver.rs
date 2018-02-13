@@ -764,6 +764,29 @@ mod tests {
         }
 
         // Tbl 5 - one turning point and one inflection on [0,1].
+        let roots = [
+            0.13775402050032426,
+            0.0036171081783322734,
+            2.598957598820562e-05,
+            7.668594662391115e-06,
+        ];
+        for (i, ni) in vec![2, 5, 15, 20].iter().enumerate() {
+            let name = format!("Dowell71 Table 5 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| (1. + (1. - n).powi(4)) * x - (1. - n * x).powi(4);
+            let df = move |x: f64| -4. * n * (n * x - 1.).powi(3) + (n - 1.).powi(4) + 1.;
+            let d2f = move |x: f64| -12. * n * n * (n * x - 1.).powi(2);
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![roots[i]],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0., 1.)],
+            });
+        }
 
         cases
     }
