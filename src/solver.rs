@@ -322,10 +322,10 @@ mod tests {
     use wrap::{RealFn, RealFnAndFirst, RealFnAndFirstSecond};
 
     struct RootTest {
-        name: &'static str,
-        f: fn(f64) -> f64,
-        df: fn(f64) -> f64,
-        d2f: fn(f64) -> f64,
+        name: String,
+        f: Box<Fn(f64) -> f64>,
+        df: Box<Fn(f64) -> f64>,
+        d2f: Box<Fn(f64) -> f64>,
         roots: Vec<f64>,
         guesses: Vec<f64>,
         brackets: Vec<Bounds>,
@@ -340,90 +340,92 @@ mod tests {
     fn make_root_tests_ford95() -> Vec<RootTest> {
         vec![
             RootTest {
-                name: "Ford95 Example One",
-                f: |x| 4. * x.cos() - x.exp(),
-                df: |x| -4. * x.sin() - x.exp(),
-                d2f: |x| -4. * x.cos() - x.exp(),
+                name: "Ford95 Example One".to_owned(),
+                f: Box::new(|x| 4. * x.cos() - x.exp()),
+                df: Box::new(|x| -4. * x.sin() - x.exp()),
+                d2f: Box::new(|x| -4. * x.cos() - x.exp()),
                 roots: vec![0.90478821787302],
                 guesses: vec![5.0],
                 brackets: vec![Bounds::new(-1.5, 6.0)],
             },
             RootTest {
-                name: "Ford95 Example Three",
-                f: |x| 2. * x * (-20f64).exp() + 1. - 2. * (-20. * x).exp(),
-                df: |x| 40. * (-20. * x).exp() + 2. * (20f64).exp().recip(),
-                d2f: |x| -800. * (-20. * x).exp(),
+                name: "Ford95 Example Three".to_owned(),
+                f: Box::new(|x| 2. * x * (-20f64).exp() + 1. - 2. * (-20. * x).exp()),
+                df: Box::new(|x| 40. * (-20. * x).exp() + 2. * (20f64).exp().recip()),
+                d2f: Box::new(|x| -800. * (-20. * x).exp()),
                 roots: vec![0.034657358821882],
                 guesses: vec![-2.5],
                 brackets: vec![Bounds::new(-1.0, 4.0)],
             },
             RootTest {
-                name: "Ford95 Example Four",
-                f: |x| (x.recip() - 25.).exp() - 1.,
-                df: |x| -(x.recip() - 25.).exp() * x.powi(-2),
-                d2f: |x| (x.recip() - 25.).exp() * (2. * x + 1.) * x.powi(-4),
+                name: "Ford95 Example Four".to_owned(),
+                f: Box::new(|x| (x.recip() - 25.).exp() - 1.),
+                df: Box::new(|x| -(x.recip() - 25.).exp() * x.powi(-2)),
+                d2f: Box::new(|x| (x.recip() - 25.).exp() * (2. * x + 1.) * x.powi(-4)),
                 roots: vec![0.04],
                 guesses: vec![0.035],
                 brackets: vec![Bounds::new(0.02, 1.0)],
             },
             RootTest {
-                name: "Ford95 Example Six",
-                f: |x| 10000000000. * x.powf(x.recip()) - 1.0,
-                df: |x| -10000000000. * x.powf(x.recip() - 2.) * (x.ln() - 1.),
-                d2f: |x| {
+                name: "Ford95 Example Six".to_owned(),
+                f: Box::new(|x| 10000000000. * x.powf(x.recip()) - 1.0),
+                df: Box::new(|x| -10000000000. * x.powf(x.recip() - 2.) * (x.ln() - 1.)),
+                d2f: Box::new(|x| {
                     10000000000. * x.powf(x.recip() - 4.)
                         * (-3. * x + x.ln().powi(2) + 2. * (x - 1.) * x.ln() + 1.)
-                },
+                }),
                 roots: vec![0.1],
                 guesses: vec![0.15],
                 brackets: vec![Bounds::new(0.05, 0.2)],
             },
             RootTest {
-                name: "Ford95 Example Seven",
-                f: |x| x.powi(20) - 1.,
-                df: |x| 20. * x.powi(19),
-                d2f: |x| 380. * x.powi(18),
+                name: "Ford95 Example Seven".to_owned(),
+                f: Box::new(|x| x.powi(20) - 1.),
+                df: Box::new(|x| 20. * x.powi(19)),
+                d2f: Box::new(|x| 380. * x.powi(18)),
                 roots: vec![1.0],
                 guesses: vec![1.2],
                 brackets: vec![Bounds::new(-0.5, 5.0)],
             },
             RootTest {
-                name: "Ford95 Example Eight",
-                f: |x| (21000. / x).exp() / (1.11 * 100000000000. * x * x) - 1.,
-                df: |x| (-1.8018e-11 * (21000. / x).exp() * (x + 10500.)) / (x * x * x * x),
-                d2f: |x| {
+                name: "Ford95 Example Eight".to_owned(),
+                f: Box::new(|x| (21000. / x).exp() / (1.11 * 100000000000. * x * x) - 1.),
+                df: Box::new(|x| {
+                    (-1.8018e-11 * (21000. / x).exp() * (x + 10500.)) / (x * x * x * x)
+                }),
+                d2f: Box::new(|x| {
                     (21000. / x).exp() * (5.40541e-11 * x * x + 1.13514e-6 * x + 0.00397297)
                         / x.powi(6)
-                },
+                }),
                 roots: vec![551.77382493033],
                 guesses: vec![400.0],
                 brackets: vec![Bounds::new(350.0, 850.0)],
             },
             RootTest {
-                name: "Ford95 Example Nine",
-                f: |x| x.recip() + x.ln() - 100.,
-                df: |x| (x - 1.0) / (x * x),
-                d2f: |x| (2. - x) / (x * x * x),
+                name: "Ford95 Example Nine".to_owned(),
+                f: Box::new(|x| x.recip() + x.ln() - 100.),
+                df: Box::new(|x| (x - 1.0) / (x * x)),
+                d2f: Box::new(|x| (2. - x) / (x * x * x)),
                 roots: vec![0.0095556044375379],
                 guesses: vec![0.01],
                 brackets: vec![Bounds::new(0.001, 100.0)],
             },
             RootTest {
-                name: "Ford95 Example Ten",
-                f: |x| x.exp().exp() - (1.0f64).exp().exp(),
-                df: |x| (x + x.exp()).exp(),
-                d2f: |x| (x + x.exp()).exp() * (x.exp() + 1.),
+                name: "Ford95 Example Ten".to_owned(),
+                f: Box::new(|x| x.exp().exp() - (1.0f64).exp().exp()),
+                df: Box::new(|x| (x + x.exp()).exp()),
+                d2f: Box::new(|x| (x + x.exp()).exp() * (x.exp() + 1.)),
                 roots: vec![1.0],
                 guesses: vec![1.8],
                 brackets: vec![Bounds::new(0.5, 3.5)],
             },
             RootTest {
-                name: "Ford95 Example Eleven",
-                f: |x| (0.01 / x).sin() - 0.01,
-                df: |x| -0.01 * (0.01 / x).cos() / (x * x),
-                d2f: |x| {
+                name: "Ford95 Example Eleven".to_owned(),
+                f: Box::new(|x| (0.01 / x).sin() - 0.01),
+                df: Box::new(|x| -0.01 * (0.01 / x).cos() / (x * x)),
+                d2f: Box::new(|x| {
                     (0.02 * x * (0.01 / x).cos() - 0.0001 * (0.01 / x).sin()) / (x * x * x * x)
-                },
+                }),
                 roots: vec![0.99998333286109],
                 guesses: vec![0.55],
                 brackets: vec![Bounds::new(0.004, 200.0)],
@@ -443,178 +445,180 @@ mod tests {
     fn make_root_tests_costabile06() -> Vec<RootTest> {
         vec![
             RootTest {
-                name: "Costabile06 Example One",
-                f: |x| x * x * x - 1.,
-                df: |x| 3. * x * x,
-                d2f: |x| 6. * x,
+                name: "Costabile06 Example One".to_owned(),
+                f: Box::new(|x| x * x * x - 1.),
+                df: Box::new(|x| 3. * x * x),
+                d2f: Box::new(|x| 6. * x),
                 roots: vec![1.0],
                 guesses: vec![0.1],
                 brackets: vec![Bounds::new(0.1, 1.3)],
             },
             RootTest {
-                name: "Costabile06 Example Two",
-                f: |x| x * x * (x * x / 3. + 2.0f64.sqrt() * x.sin()) - 3.0f64.sqrt() / 18.,
-                df: |x| {
+                name: "Costabile06 Example Two".to_owned(),
+                f: Box::new(|x| {
+                    x * x * (x * x / 3. + 2.0f64.sqrt() * x.sin()) - 3.0f64.sqrt() / 18.
+                }),
+                df: Box::new(|x| {
                     4. * x * x * x / 3. + 2.0f64.sqrt() * x * x * x.cos()
                         + 2. * 2.0f64.sqrt() * x * x.sin()
-                },
-                d2f: |x| {
+                }),
+                d2f: Box::new(|x| {
                     4. * x * x - 2.0f64.sqrt() * x * x * x.sin() + 2. * 2.0f64.sqrt() * x.sin()
                         + 4. * 2.0f64.sqrt() * x * x.cos()
-                },
+                }),
                 roots: vec![0.39942229171096819451],
                 guesses: vec![1.0],
                 brackets: vec![Bounds::new(0.1, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Three",
-                f: |x| 2. * x * (-10.0f64).exp() + 1. - 2. * (-10. * x).exp(),
-                df: |x| 20. * (-10. * x).exp() + 2. * (-10.0f64).exp(),
-                d2f: |x| -200. * (-10. * x).exp(),
+                name: "Costabile06 Example Three".to_owned(),
+                f: Box::new(|x| 2. * x * (-10.0f64).exp() + 1. - 2. * (-10. * x).exp()),
+                df: Box::new(|x| 20. * (-10. * x).exp() + 2. * (-10.0f64).exp()),
+                d2f: Box::new(|x| -200. * (-10. * x).exp()),
                 roots: vec![0.069314088687023473303],
                 guesses: vec![0.0],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Four",
-                f: |x| 2. * x * (-20.0f64).exp() + 1. - 2. * (-20. * x).exp(),
-                df: |x| 40. * (-20. * x).exp() + 2. * (-20.0f64).exp(),
-                d2f: |x| -800. * (-20. * x).exp(),
+                name: "Costabile06 Example Four".to_owned(),
+                f: Box::new(|x| 2. * x * (-20.0f64).exp() + 1. - 2. * (-20. * x).exp()),
+                df: Box::new(|x| 40. * (-20. * x).exp() + 2. * (-20.0f64).exp()),
+                d2f: Box::new(|x| -800. * (-20. * x).exp()),
                 roots: vec![0.034657359020853851362],
                 guesses: vec![0.2],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Five",
-                f: |x| (1. + (1. - 5.0f64).powi(2)) * x * x - (1. - 5. * x).powi(2),
-                df: |x| 10. - 16. * x,
-                d2f: |_| -16.,
+                name: "Costabile06 Example Five".to_owned(),
+                f: Box::new(|x| (1. + (1. - 5.0f64).powi(2)) * x * x - (1. - 5. * x).powi(2)),
+                df: Box::new(|x| 10. - 16. * x),
+                d2f: Box::new(|_| -16.),
                 roots: vec![0.109611796797792],
                 guesses: vec![0.4],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Six",
-                f: |x| (1. + (1. - 10.0f64).powi(2)) * x * x - (1. - 10. * x).powi(2),
-                df: |x| 20. - 36. * x,
-                d2f: |_| -36.,
+                name: "Costabile06 Example Six".to_owned(),
+                f: Box::new(|x| (1. + (1. - 10.0f64).powi(2)) * x * x - (1. - 10. * x).powi(2)),
+                df: Box::new(|x| 20. - 36. * x),
+                d2f: Box::new(|_| -36.),
                 roots: vec![0.0524786034368102],
                 guesses: vec![0.4],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Seven",
-                f: |x| (1. + (1. - 20.0f64).powi(2)) * x * x - (1. - 20. * x).powi(2),
-                df: |x| 40. - 76. * x,
-                d2f: |_| -76.,
+                name: "Costabile06 Example Seven".to_owned(),
+                f: Box::new(|x| (1. + (1. - 20.0f64).powi(2)) * x * x - (1. - 20. * x).powi(2)),
+                df: Box::new(|x| 40. - 76. * x),
+                d2f: Box::new(|_| -76.),
                 roots: vec![0.0256237476199882],
                 guesses: vec![0.4],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Eight",
-                f: |x| x * x - (1. - x).powi(5),
-                df: |x| 5. * (1. - x).powi(4) + 2. * x,
-                d2f: |x| 20. * (1. - x).powi(3) + 2.,
+                name: "Costabile06 Example Eight".to_owned(),
+                f: Box::new(|x| x * x - (1. - x).powi(5)),
+                df: Box::new(|x| 5. * (1. - x).powi(4) + 2. * x),
+                d2f: Box::new(|x| 20. * (1. - x).powi(3) + 2.),
                 roots: vec![0.34595481584824201796],
                 guesses: vec![1.0],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Nine",
-                f: |x| (1. + (1. - 5.0f64).powi(4)) * x - (1. - 5. * x).powi(4),
-                df: |x| 20. * (1. - 5. * x).powi(3) + 257.,
-                d2f: |x| -300. * (1. - 5. * x).powi(2),
+                name: "Costabile06 Example Nine".to_owned(),
+                f: Box::new(|x| (1. + (1. - 5.0f64).powi(4)) * x - (1. - 5. * x).powi(4)),
+                df: Box::new(|x| 20. * (1. - 5. * x).powi(3) + 257.),
+                d2f: Box::new(|x| -300. * (1. - 5. * x).powi(2)),
                 roots: vec![0.00361710817890406],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Ten",
-                f: |x| (1. + (1. - 10.0f64).powi(4)) * x - (1. - 10. * x).powi(4),
-                df: |x| 40. * (1. - 10. * x).powi(3) + 6562.,
-                d2f: |x| -1200. * (1. - 10. * x).powi(2),
+                name: "Costabile06 Example Ten".to_owned(),
+                f: Box::new(|x| (1. + (1. - 10.0f64).powi(4)) * x - (1. - 10. * x).powi(4)),
+                df: Box::new(|x| 40. * (1. - 10. * x).powi(3) + 6562.),
+                d2f: Box::new(|x| -1200. * (1. - 10. * x).powi(2)),
                 roots: vec![0.000151471],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Eleven",
-                f: |x| (1. + (1. - 20.0f64).powi(4)) * x - (1. - 20. * x).powi(4),
-                df: |x| 80. * (1. - 20. * x).powi(3) + 130322.,
-                d2f: |x| -4800. * (1. - 20. * x).powi(2),
+                name: "Costabile06 Example Eleven".to_owned(),
+                f: Box::new(|x| (1. + (1. - 20.0f64).powi(4)) * x - (1. - 20. * x).powi(4)),
+                df: Box::new(|x| 80. * (1. - 20. * x).powi(3) + 130322.),
+                d2f: Box::new(|x| -4800. * (1. - 20. * x).powi(2)),
                 roots: vec![7.6686e-6],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Twelve",
-                f: |x| x * x + (x / 5.).sin() - 0.25,
-                df: |x| 2. * x + (1. / 5.) * (x / 5.).cos(),
-                d2f: |x| 2. - (1. / 25.) * (x / 5.).sin(),
+                name: "Costabile06 Example Twelve".to_owned(),
+                f: Box::new(|x| x * x + (x / 5.).sin() - 0.25),
+                df: Box::new(|x| 2. * x + (1. / 5.) * (x / 5.).cos()),
+                d2f: Box::new(|x| 2. - (1. / 25.) * (x / 5.).sin()),
                 roots: vec![0.40999201798913713162125838],
                 guesses: vec![0.0],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Thirteen",
-                f: |x| x * x + (x / 10.).sin() - 0.25,
-                df: |x| 2. * x + (1. / 10.) * (x / 10.).cos(),
-                d2f: |x| 2. - (1. / 100.) * (x / 100.).sin(),
+                name: "Costabile06 Example Thirteen".to_owned(),
+                f: Box::new(|x| x * x + (x / 10.).sin() - 0.25),
+                df: Box::new(|x| 2. * x + (1. / 10.) * (x / 10.).cos()),
+                d2f: Box::new(|x| 2. - (1. / 100.) * (x / 100.).sin()),
                 roots: vec![0.45250914557764122545806719],
                 guesses: vec![0.0],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Fourteen",
-                f: |x| x * x + (x / 20.).sin() - 0.25,
-                df: |x| 2. * x + (1. / 20.) * (x / 20.).cos(),
-                d2f: |x| 2. - (1. / 400.) * (x / 20.).sin(),
+                name: "Costabile06 Example Fourteen".to_owned(),
+                f: Box::new(|x| x * x + (x / 20.).sin() - 0.25),
+                df: Box::new(|x| 2. * x + (1. / 20.) * (x / 20.).cos()),
+                d2f: Box::new(|x| 2. - (1. / 400.) * (x / 20.).sin()),
                 roots: vec![0.47562684859606241311984234],
                 guesses: vec![0.0],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Fifteen",
-                f: |x| (5. * x - 1.) / (4. * x),
-                df: |x| 1. * (4. * x * x).recip(),
-                d2f: |x| -1. * (2. * x * x * x).recip(),
+                name: "Costabile06 Example Fifteen".to_owned(),
+                f: Box::new(|x| (5. * x - 1.) / (4. * x)),
+                df: Box::new(|x| 1. * (4. * x * x).recip()),
+                d2f: Box::new(|x| -1. * (2. * x * x * x).recip()),
                 roots: vec![0.2],
                 guesses: vec![0.375],
                 brackets: vec![Bounds::new(0.01, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Sixteen",
-                f: |x| x - 3. * x.ln(),
-                df: |x| 1. - 3. / x,
-                d2f: |x| 3. / (x * x),
+                name: "Costabile06 Example Sixteen".to_owned(),
+                f: Box::new(|x| x - 3. * x.ln()),
+                df: Box::new(|x| 1. - 3. / x),
+                d2f: Box::new(|x| 3. / (x * x)),
                 roots: vec![1.8571838602078353365],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.5, 2.0)],
             },
             RootTest {
-                name: "Costabile06 Example Seventeen",
-                f: |x| x * x * x - 2. * x + x.cos(),
-                df: |x| 3. * x * x - 2. - x.sin(),
-                d2f: |x| 6. * x - x.cos(),
+                name: "Costabile06 Example Seventeen".to_owned(),
+                f: Box::new(|x| x * x * x - 2. * x + x.cos()),
+                df: Box::new(|x| 3. * x * x - 2. - x.sin()),
+                d2f: Box::new(|x| 6. * x - x.cos()),
                 roots: vec![1.3581687638286110480],
                 guesses: vec![2.0],
                 brackets: vec![Bounds::new(1.0, 2.0)],
             },
             RootTest {
-                name: "Costabile06 Example Eighteen",
-                f: |x| x * x + 5. * x + x.exp(),
-                df: |x| 2. * x + 5. + x.exp(),
-                d2f: |x| 2. + x.exp(),
+                name: "Costabile06 Example Eighteen".to_owned(),
+                f: Box::new(|x| x * x + 5. * x + x.exp()),
+                df: Box::new(|x| 2. * x + 5. + x.exp()),
+                d2f: Box::new(|x| 2. + x.exp()),
                 roots: vec![-0.17410431211597044503],
                 guesses: vec![-1.0],
                 brackets: vec![Bounds::new(-1.0, 2.0)],
             },
             RootTest {
-                name: "Costabile06 Example Nineteen, Twenty, Twenty One",
-                f: |x| x.exp() - 4. * x * x,
-                df: |x| x.exp() - 8. * x,
-                d2f: |x| x.exp() - 8.,
+                name: "Costabile06 Example Nineteen, Twenty, Twenty One".to_owned(),
+                f: Box::new(|x| x.exp() - 4. * x * x),
+                df: Box::new(|x| x.exp() - 8. * x),
+                d2f: Box::new(|x| x.exp() - 8.),
                 roots: vec![
                     -0.40777670940448032889,
                     0.7148059123627778061,
@@ -628,55 +632,55 @@ mod tests {
                 ],
             },
             RootTest {
-                name: "Costabile06 Example Twenty Two, Twenty Eight",
-                f: |x| x.powi(20) - 1.0,
-                df: |x| 20. * x.powi(19),
-                d2f: |x| 380. * x.powi(18),
+                name: "Costabile06 Example Twenty Two, Twenty Eight".to_owned(),
+                f: Box::new(|x| x.powi(20) - 1.0),
+                df: Box::new(|x| 20. * x.powi(19)),
+                d2f: Box::new(|x| 380. * x.powi(18)),
                 roots: vec![1.0, -1.0],
                 guesses: vec![0.7, -0.7], // NR narrower converging region than Halley
                 brackets: vec![Bounds::new(0.5, 2.0), Bounds::new(-2.0, 0.5)],
             },
             RootTest {
-                name: "Costabile06 Example Twenty Three",
-                f: |x| (x - 1.).powi(3) * x.exp(),
-                df: |x| (x - 1.).powi(2) * x.exp() * (x + 2.),
-                d2f: |x| x.exp() * (x * x * x + 3. * x * x - 3. * x - 1.),
+                name: "Costabile06 Example Twenty Three".to_owned(),
+                f: Box::new(|x| (x - 1.).powi(3) * x.exp()),
+                df: Box::new(|x| (x - 1.).powi(2) * x.exp() * (x + 2.)),
+                d2f: Box::new(|x| x.exp() * (x * x * x + 3. * x * x - 3. * x - 1.)),
                 roots: vec![1.0],
                 guesses: vec![0.9999999995], // NR/Halley take tiny steps near root
                 brackets: vec![Bounds::new(0.5, 2.0)],
             },
             RootTest {
-                name: "Costabile06 Example Twenty Four",
-                f: |x| (x - 1.).powi(5) * x.exp(),
-                df: |x| (x - 1.).powi(4) * x.exp() * (x + 4.),
-                d2f: |x| x.exp() * (x - 1.).powi(3) * (x * x + 8. * x + 11.),
+                name: "Costabile06 Example Twenty Four".to_owned(),
+                f: Box::new(|x| (x - 1.).powi(5) * x.exp()),
+                df: Box::new(|x| (x - 1.).powi(4) * x.exp() * (x + 4.)),
+                d2f: Box::new(|x| x.exp() * (x - 1.).powi(3) * (x * x + 8. * x + 11.)),
                 roots: vec![1.0],
                 guesses: vec![1.0000000005], // NR/Halley take tiny steps near root
                 brackets: vec![Bounds::new(0.5, 2.0)],
             },
             RootTest {
-                name: "Costabile06 Example Twenty Five",
-                f: |x| (10. * x - 1.) / (9. * x),
-                df: |x| (9. * x * x).recip(),
-                d2f: |x| -2. * (9. * x * x * x).recip(),
+                name: "Costabile06 Example Twenty Five".to_owned(),
+                f: Box::new(|x| (10. * x - 1.) / (9. * x)),
+                df: Box::new(|x| (9. * x * x).recip()),
+                d2f: Box::new(|x| -2. * (9. * x * x * x).recip()),
                 roots: vec![0.1],
                 guesses: vec![0.01], // hard for iterative methods coming from right
                 brackets: vec![Bounds::new(0.01, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Twenty Six",
-                f: |x| (20. * x - 1.) / (19. * x),
-                df: |x| (19. * x * x).recip(),
-                d2f: |x| -2. * (19. * x * x * x).recip(),
+                name: "Costabile06 Example Twenty Six".to_owned(),
+                f: Box::new(|x| (20. * x - 1.) / (19. * x)),
+                df: Box::new(|x| (19. * x * x).recip()),
+                d2f: Box::new(|x| -2. * (19. * x * x * x).recip()),
                 roots: vec![0.05],
                 guesses: vec![0.06], // hard for iterative methods coming from right
                 brackets: vec![Bounds::new(0.01, 1.0)],
             },
             RootTest {
-                name: "Costabile06 Example Twenty Seven",
-                f: |x| (-x).exp() + x.cos(),
-                df: |x| x.exp() - x.sin(),
-                d2f: |x| (-x).exp() - x.cos(),
+                name: "Costabile06 Example Twenty Seven".to_owned(),
+                f: Box::new(|x| (-x).exp() + x.cos()),
+                df: Box::new(|x| x.exp() - x.sin()),
+                d2f: Box::new(|x| (-x).exp() - x.cos()),
                 roots: vec![1.74613953040801241765070309],
                 guesses: vec![1.746139531], // iterative methods suffer here
                 brackets: vec![Bounds::new(1.0, 2.0)],
@@ -689,76 +693,76 @@ mod tests {
     fn make_root_tests_misc() -> Vec<RootTest> {
         vec![
             RootTest {
-                name: "Factored Parabola",
-                f: |x| (x - 5.0) * (x - 4.0),
-                df: |x| 2.0 * x - 9.0,
-                d2f: |_| 2.0,
+                name: "Factored Parabola".to_owned(),
+                f: Box::new(|x| (x - 5.0) * (x - 4.0)),
+                df: Box::new(|x| 2.0 * x - 9.0),
+                d2f: Box::new(|_| 2.0),
                 roots: vec![5.0, 4.0],
                 guesses: vec![5.8, 3.8],
                 brackets: vec![Bounds::new(4.5, 100.0), Bounds::new(-100000.0, 4.01)],
             },
             RootTest {
-                name: "Wikipedia NR Parabola",
-                f: |x| x * x - 612.0,
-                df: |x| 2.0 * x,
-                d2f: |_| 2.0,
+                name: "Wikipedia NR Parabola".to_owned(),
+                f: Box::new(|x| x * x - 612.0),
+                df: Box::new(|x| 2.0 * x),
+                d2f: Box::new(|_| 2.0),
                 roots: vec![-24.7386337537, 24.7386337537],
                 guesses: vec![-10.0, 10.0],
                 brackets: vec![Bounds::new(-30.0, 10.0), Bounds::new(10.0, 30.0)],
             },
             RootTest {
-                name: "Wikipedia NR Trigonometry",
-                f: |x| x.cos() - x * x * x,
-                df: |x| -x.sin() - 3. * x * x,
-                d2f: |x| -x.cos() - 6. * x,
+                name: "Wikipedia NR Trigonometry".to_owned(),
+                f: Box::new(|x| x.cos() - x * x * x),
+                df: Box::new(|x| -x.sin() - 3. * x * x),
+                d2f: Box::new(|x| -x.cos() - 6. * x),
                 roots: vec![0.865474033102],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 1.0)],
             },
             RootTest {
-                name: "Wikipedia Bisection Cubic",
-                f: |x| x * x * x - x - 2.0,
-                df: |x| 3.0 * x * x - 1.0,
-                d2f: |x| 6.0 * x,
+                name: "Wikipedia Bisection Cubic".to_owned(),
+                f: Box::new(|x| x * x * x - x - 2.0),
+                df: Box::new(|x| 3.0 * x * x - 1.0),
+                d2f: Box::new(|x| 6.0 * x),
                 roots: vec![1.52137970680457],
                 guesses: vec![1.0],
                 brackets: vec![Bounds::new(1.0, 2.0)],
             },
             RootTest {
-                name: "Isaac Newton's Secant Example",
-                f: |x| x * x * x + 10.0 * x * x - 7.0 * x - 44.0,
-                df: |x| 3.0 * x * x + 20.0 * x - 7.0,
-                d2f: |x| 6.0 * x + 20.0,
+                name: "Isaac Newton's Secant Example".to_owned(),
+                f: Box::new(|x| x * x * x + 10.0 * x * x - 7.0 * x - 44.0),
+                df: Box::new(|x| 3.0 * x * x + 20.0 * x - 7.0),
+                d2f: Box::new(|x| 6.0 * x + 20.0),
                 roots: vec![2.20681731724844],
                 guesses: vec![2.2],
                 brackets: vec![Bounds::new(2.0, 2.3)],
             },
             RootTest {
-                name: "Isaac Newton's NR Example",
-                f: |x| x * x * x - 2.0 * x - 5.0,
-                df: |x| 3.0 * x * x - 2.0,
-                d2f: |x| 6.0 * x,
+                name: "Isaac Newton's NR Example".to_owned(),
+                f: Box::new(|x| x * x * x - 2.0 * x - 5.0),
+                df: Box::new(|x| 3.0 * x * x - 2.0),
+                d2f: Box::new(|x| 6.0 * x),
                 roots: vec![2.0945514815423265],
                 guesses: vec![2.0],
                 brackets: vec![Bounds::new(2.0, 3.0)],
             },
             RootTest {
-                name: "Thomas Simpson NR Example",
-                f: |x| {
+                name: "Thomas Simpson NR Example".to_owned(),
+                f: Box::new(|x| {
                     (1. - x).sqrt() + (1. - 2. * x * x).sqrt() + (1. - 3. * x * x * x).sqrt() - 2.
-                },
-                df: |x| {
+                }),
+                df: Box::new(|x| {
                     -2. * x * (1. - 2. * x * x).sqrt().recip()
                         - 9. * x * x * (1. - 3. * x * x * x).sqrt().recip() / 2.
                         - 1. * (1. - x).sqrt().recip() / 2.
-                },
-                d2f: |x| {
+                }),
+                d2f: Box::new(|x| {
                     -9. * x * (1. - 3. * x * x * x).sqrt().recip()
                         - 4. * x * x * (1. - 2. * x * x).powf(1.5)
                         - 2. * (1. - 2. * x * x).sqrt().recip()
                         - 81. * x * x * x * x * (1. - 3. * x * x * x).powf(1.5) / 4.
                         - 1. * (1. - x).powf(1.5) / 4.
-                },
+                }),
                 roots: vec![0.55158615249704711724768527],
                 guesses: vec![0.5],
                 brackets: vec![Bounds::new(0.0, 0.69)],
@@ -782,7 +786,7 @@ mod tests {
     fn test_table_bisection() {
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let f = RealFn::new(&t.f);
+                let f = RealFn::new(&*t.f);
                 let root =
                     bisection(&f, &t.brackets[i], 100).expect(&format!("root for {}", t.name));
 
@@ -802,7 +806,7 @@ mod tests {
 
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let f = RealFnAndFirst::new(&t.f, &t.df);
+                let f = RealFnAndFirst::new(&*t.f, &*t.df);
                 let root = newton_raphson(&f, t.guesses[i], &conv, 100)
                     .expect(&format!("root for {}", t.name));
 
@@ -822,7 +826,7 @@ mod tests {
 
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let f = RealFnAndFirstSecond::new(&t.f, &t.df, &t.d2f);
+                let f = RealFnAndFirstSecond::new(&*t.f, &*t.df, &*t.d2f);
                 let root = halley_method(&f, t.guesses[i], &conv, 100)
                     .expect(&format!("root for {}", t.name));
 
@@ -838,7 +842,7 @@ mod tests {
     fn test_table_illinois() {
         for t in make_root_tests() {
             for i in 0..t.roots.len() {
-                let f = RealFn::new(&t.f);
+                let f = RealFn::new(&*t.f);
                 let root = false_position_illinios(&f, &t.brackets[i], 100)
                     .expect(&format!("root for {}", t.name));
 
