@@ -722,6 +722,27 @@ mod tests {
             });
         }
 
+        // Table 3 - one turning point on [0, 1].
+        for ni in vec![2, 5, 15, 20].iter() {
+            let name = format!("Dowell71 Table 3 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| (1. + (1. - n).powi(2)) * x - (1. - n * x).powi(2);
+            let df = move |x: f64| n * n * (1. - 2. * x) + 2.;
+            let d2f = move |_| -2. * n * n;
+
+            let root = (-(n * n * n * n + 4.).sqrt() + n * n + 2.) / (2. * n * n);
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![root],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0., 1.)],
+            });
+        }
+
         cases
     }
 
