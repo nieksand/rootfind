@@ -3,7 +3,7 @@
 [![Released API docs](https://docs.rs/rootfind/badge.svg)](http://docs.rs/rootfind)
 
 # Root Finding
-***Work in progress.  Not ready for use!***
+***Work in progress.  Not ready for production use!***
 
 Root finding algorithms implemented in Rust.
 
