@@ -688,6 +688,43 @@ mod tests {
         ]
     }
 
+    /// The Dowell71 tests are from:
+    ///
+    /// *Dowell, M., & Jarratt, P. (1971). A modified regula falsi method for
+    /// computing the root of an equation. BIT Numerical Mathematics, 11(2),
+    /// 168-174.*
+    ///
+    fn make_root_tests_dowell71() -> Vec<RootTest> {
+        let mut cases = Vec::new();
+
+        // Table 2 - no turning points or inflections in [0,1]
+        let roots = [
+            0.422477709641236,
+            0.138257155056824,
+            0.046209810152571,
+            0.034657359020853,
+        ];
+        for (i, ni) in vec![1, 5, 15, 20].iter().enumerate() {
+            let name = format!("Dowell71 Table 2 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| 2. * x * (-n).exp() + 1. - 2. * (-n * x).exp();
+            let df = move |x: f64| 2. * (n * (-n * x).exp() + (-n).exp());
+            let d2f = move |x: f64| -2. * n * n * (-n * x).exp();
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![roots[i]],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0., 1.)],
+            });
+        }
+
+        cases
+    }
+
     /// These tests have miscellaneous pedigrees.  Some are originals.
     ///
     fn make_root_tests_misc() -> Vec<RootTest> {
@@ -775,6 +812,7 @@ mod tests {
         let mut v = Vec::new();
         v.extend(make_root_tests_ford95());
         v.extend(make_root_tests_costabile06());
+        v.extend(make_root_tests_dowell71());
         v.extend(make_root_tests_misc());
         v
     }
