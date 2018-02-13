@@ -697,7 +697,7 @@ mod tests {
     fn make_root_tests_dowell71() -> Vec<RootTest> {
         let mut cases = Vec::new();
 
-        // Table 2 - no turning points or inflections in [0,1]
+        // Tbl 2 - no turning points or inflections in [0,1]
         let roots = [
             0.422477709641236,
             0.138257155056824,
@@ -710,6 +710,72 @@ mod tests {
             let f = move |x: f64| 2. * x * (-n).exp() + 1. - 2. * (-n * x).exp();
             let df = move |x: f64| 2. * (n * (-n * x).exp() + (-n).exp());
             let d2f = move |x: f64| -2. * n * n * (-n * x).exp();
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![roots[i]],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0., 1.)],
+            });
+        }
+
+        // Tbl 3 - one turning point on [0,1].
+        for ni in vec![2, 5, 15, 20].iter() {
+            let name = format!("Dowell71 Table 3 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| (1. + (1. - n).powi(2)) * x - (1. - n * x).powi(2);
+            let df = move |x: f64| n * n * (1. - 2. * x) + 2.;
+            let d2f = move |_| -2. * n * n;
+
+            let root = (-(n * n * n * n + 4.).sqrt() + n * n + 2.) / (2. * n * n);
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![root],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0., 1.)],
+            });
+        }
+
+        // Tbl 4 - one inflection on [0,1].
+        let roots = [0.5, 0.345954815848242, 0.195547623536565, 0.164920957276441];
+        for (i, ni) in vec![2, 5, 15, 20].iter().enumerate() {
+            let name = format!("Dowell71 Table 4 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| x * x - (1. - x).powi(n as i32);
+            let df = move |x: f64| n * (1. - x).powi((n as i32) - 1) + 2. * x;
+            let d2f = move |x: f64| 2. - (n - 1.) * n * (1. - x).powi((n as i32) - 2);
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![roots[i]],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0., 1.)],
+            });
+        }
+
+        // Tbl 5 - one turning point and one inflection on [0,1].
+        let roots = [
+            0.13775402050032426,
+            0.0036171081783322734,
+            2.598957598820562e-05,
+            7.668594662391115e-06,
+        ];
+        for (i, ni) in vec![2, 5, 15, 20].iter().enumerate() {
+            let name = format!("Dowell71 Table 5 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| (1. + (1. - n).powi(4)) * x - (1. - n * x).powi(4);
+            let df = move |x: f64| -4. * n * (n * x - 1.).powi(3) + (n - 1.).powi(4) + 1.;
+            let d2f = move |x: f64| -12. * n * n * (n * x - 1.).powi(2);
 
             cases.push(RootTest {
                 name: name,
