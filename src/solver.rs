@@ -815,6 +815,27 @@ mod tests {
             });
         }
 
+        // Tbl 7 - curves with y-axis asymptotic
+        for ni in vec![2, 5, 15, 20].iter() {
+            let name = format!("Dowell71 Table 7 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| (n * x - 1.) / ((n - 1.) * x);
+            let df = move |x: f64| 1. / ((n - 1.) * x * x);
+            let d2f = move |x: f64| -2. / ((n - 1.) * x * x * x);
+
+            let root = 1. / n;
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![root],
+                guesses: vec![0.01],
+                brackets: vec![Bounds::new(0.01, 1.0)],
+            });
+        }
+
         cases
     }
 
