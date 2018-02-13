@@ -788,6 +788,33 @@ mod tests {
             });
         }
 
+        // Tbl 6 - curves laying increasingly close to the x-axis for large n
+        let roots = [
+            0.4010581375414404,
+            0.5161535187571644,
+            0.5395222269080477,
+            0.5481822943411316,
+        ];
+        for (i, ni) in vec![1, 5, 10, 15].iter().enumerate() {
+            let name = format!("Dowell71 Table 6 for n={}", ni);
+            let n = *ni as f64;
+            let f = move |x: f64| (-n * x).exp() * (x - 1.) + x.powi(n as i32);
+            let df = move |x: f64| n * x.powi((n as i32) - 1) + (-n * x).exp() * (n * -x + n + 1.);
+            let d2f = move |x: f64| {
+                n * ((n - 1.) * x.powi((n as i32) - 2) + (-n * x).exp() * (n * (x - 1.) - 2.))
+            };
+
+            cases.push(RootTest {
+                name: name,
+                f: Box::new(f),
+                df: Box::new(df),
+                d2f: Box::new(d2f),
+                roots: vec![roots[i]],
+                guesses: vec![0.1],
+                brackets: vec![Bounds::new(0., 1.)],
+            });
+        }
+
         cases
     }
 
