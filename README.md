@@ -23,8 +23,8 @@ production use:
 * Newton-Raphson
 * Halley's Method
 
-Work is in progress to provide "safe" forms of these higher order methods,
-hybridizing them with bisection to ensure convergence.
+Work is in progress on production-suitable variants which hybridize these
+higher order methods with bisection to ensure convergence.
 
 Custom convergence criteria can be supplied by the IsConverged trait.  Some
 reasonable canned implementations are provided.
