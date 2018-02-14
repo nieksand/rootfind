@@ -76,30 +76,37 @@ This quick example is an excerpt from tests/integration.rs.
     }
 
 # Remaining Work
-In terms of algorithms, there are three major things missing:
 
+## Algorithms
 1. "Safe" variants of Newton-Raphson and Halley's Method which hybridize with a
    bracketing method to ensure global convergence.
-2. Brent-Decker implementation for when no analytic derivatives are available.
-3. Specialized routines for solving roots of Polynomials.
 
-In terms of design, remaining work includes:
+2. A TOMS-748 implementation for finding roots when no analytic derivatives are
+   available.  (This provides a good default choice with bisection and
+   false-position as fall back options).
 
-1. Allowing visibility into the solver state as it runs.
-2. Potentially allowing optimized Newton-Raphson where the fraction f(x)/f'(x)
-   is supplied directly rather than being computed at runtime.  Cancellation of
-   terms provides an opportunity for performance optimization.
+3. Specialized routines for finding roots of Polynomials.
 
-There are also two projects I want to cross-validate both implementations and
-overall design against.  Specifically the C++ Boost Root Finders and the ones
-supplied in the Gnu Scientific Library.  The Numerical Recipes book also has
-solid implementations, but I want to avoid copyright issues so I'm mostly
-staying away from it.
+## Design
+1. Provide visibility into the solver state as it runs.
 
-As expected, this project uses semantic versioning (major.minor.patch).  The
-remaining work mostly falls under 'minor' increments.  When that's all done, I
-would like some external review or feedback before cutting the official 1.0.0
-release.
+2. Allow optimized Newton-Raphson where the fraction f(x)/f'(x) is supplied
+   directly rather than being computed at runtime.  Cancellation of terms 
+   provides an opportunity for performance optimization.
+
+3. Convergence criteria for bracketing methods.
+
+4. Check if converged brackets actually closed on a root rather than jump
+   discontinuity.
+
+## Cross Validation
+I want to cross-validate both the design and implementation against the C++
+Boost, SciPy, and GSL root finding implementations.
+
+## Road to 1.0.0
+This project uses semantic versioning (major.minor.patch).  The remaining work
+mostly falls under 'minor' increments.  When that's all done, I would like some
+external review or feedback before cutting the official 1.0.0 release.
 
 # References
 The Numerical Recipes book covers both implementation and methodology for
