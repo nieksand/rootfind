@@ -10,7 +10,7 @@ fn test_end_to_end() {
     let f_inner = |x: f64| x.sin();
 
     // rootfind determines via traits what is f(x), df(x), d2f(x), etc.
-    // a provided wrapper to annotate our naked closure accordingly.
+    // the RealFn wrapper annotates our closure accordingly.
     let f = RealFn::new(&f_inner);
 
     // search for root-holding brackets
