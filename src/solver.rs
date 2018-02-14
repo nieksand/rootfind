@@ -231,7 +231,7 @@ where
         }
 
         // convergence criteria
-        if window.b - window.a < 1e-9 {
+        if window.size() < 1e-9 {
             return Ok(window.a);
         }
     }
@@ -306,7 +306,7 @@ where
         }
 
         // convergence criteria
-        if window.b - window.a < 1e-9 {
+        if window.size() < 1e-9 {
             return Ok(window.middle());
         }
     }
