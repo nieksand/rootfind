@@ -24,9 +24,11 @@
 //! # Examples
 //! ```
 //! use rootfind::bracket::{BracketGenerator, Bounds};
+//! use rootfind::wrap::RealFn;
 //!
 //! // roots at 0, pi, 2pi, ...
-//! let f = |x: f64| x.sin();
+//! let fin = |x: f64| x.sin();
+//! let f = RealFn::new(&fin);
 //!
 //! // search for root-holding brackets
 //! let window_size = 0.1;
@@ -40,6 +42,8 @@
 //! bisection() to locate the actual roots.
 
 use std::f64;
+
+use wrap::RealFnEval;
 
 /// Bounds represents the closed finite interval [a,b].
 #[derive(Clone, Debug, PartialEq)]
@@ -106,7 +110,7 @@ pub struct BracketGenerator<'a, F: 'a> {
 
 impl<'a, F> BracketGenerator<'a, F>
 where
-    F: Fn(f64) -> f64,
+    F: RealFnEval,
 {
     pub fn new(f: &F, bounds: Bounds, window_size: f64) -> BracketGenerator<F> {
         BracketGenerator {
@@ -119,13 +123,13 @@ where
 
 impl<'a, F> Iterator for BracketGenerator<'a, F>
 where
-    F: Fn(f64) -> f64,
+    F: RealFnEval,
 {
     type Item = Bounds;
 
     fn next(&mut self) -> Option<Bounds> {
         let mut search_bounds = self.remaining.clone()?;
-        let result = first_bracket(&self.f, &search_bounds, self.window_size);
+        let result = first_bracket(self.f, &search_bounds, self.window_size);
 
         match result {
             None => {
@@ -158,7 +162,7 @@ pub fn is_sign_change(lhs: f64, rhs: f64) -> bool {
 /// might be a singularity instead.
 pub fn first_bracket<F>(f: &F, bounds: &Bounds, window_size: f64) -> Option<Bounds>
 where
-    F: Fn(f64) -> f64,
+    F: RealFnEval,
 {
     assert!(window_size > 0.0);
 
@@ -167,9 +171,9 @@ where
         b: (bounds.a + window_size).min(bounds.b),
     };
 
-    let mut f_a = f(win.a);
+    let mut f_a = f.eval_f(win.a);
     while win.a < bounds.b {
-        let f_b = f(win.b);
+        let f_b = f.eval_f(win.b);
 
         // found root or singularity
         if is_sign_change(f_a, f_b) {
@@ -186,6 +190,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use wrap::RealFn;
 
     #[test]
     fn test_bounds_new_valid() {
@@ -302,7 +307,8 @@ mod tests {
 
     #[test]
     fn test_bracket_generator_hits() {
-        let f = |x: f64| x.sin();
+        let fin = |x: f64| x.sin();
+        let f = RealFn::new(&fin);
         let pi = f64::consts::PI;
         let b = Bounds::new(-0.1, 4.0 * pi + 0.1);
 
@@ -320,7 +326,8 @@ mod tests {
 
     #[test]
     fn test_bracket_generator_empty() {
-        let f = |x: f64| x.sin();
+        let fin = |x: f64| x.sin();
+        let f = RealFn::new(&fin);
         let b = Bounds::new(0.1, 0.5);
 
         let mut gen = BracketGenerator::new(&f, b, 0.1);
@@ -330,8 +337,10 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_bracket_generator_window_negative() {
-        let f = |x: f64| x.sin();
+        let fin = |x: f64| x.sin();
+        let f = RealFn::new(&fin);
         let b = Bounds::new(-10.0, 10.0);
+
         let _brackets: Vec<Bounds> = BracketGenerator::new(&f, b, -0.1).collect();
     }
 
@@ -385,21 +394,25 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_first_bracket_negative_window() {
-        let f = |x| x * x;
+        let fin = |x| x * x;
+        let f = RealFn::new(&fin);
         first_bracket(&f, &Bounds::new(-20.0, 20.0), -1.0);
     }
 
     #[test]
     #[should_panic]
     fn test_first_bracket_zero_window() {
-        let f = |x| x * x;
+        let fin = |x| x * x;
+        let f = RealFn::new(&fin);
         first_bracket(&f, &Bounds::new(-20.0, 20.0), 0.0);
     }
 
     #[test]
     fn test_first_bracket_hit() {
+        let fin = |x| x + 9.0;
+        let f = RealFn::new(&fin);
+
         // root at x=-9
-        let f = |x| x + 9.0;
         let win = first_bracket(&f, &Bounds::new(-100.0, 100.0), 10.0).expect("window found");
         assert_eq!(win, Bounds::new(-10.0, 0.0));
 
@@ -415,12 +428,14 @@ mod tests {
     #[test]
     fn test_first_bracket_miss() {
         // root at x=-9, but window doesn't include
-        let f = |x| x + 9.0;
+        let fin = |x| x + 9.0;
+        let f = RealFn::new(&fin);
         let win = first_bracket(&f, &Bounds::new(0.0, 100.0), 10.0);
         assert!(win.is_none());
 
         // no root
-        let f = |_| 33.0;
+        let fin = |_| 33.0;
+        let f = RealFn::new(&fin);
         let win = first_bracket(&f, &Bounds::new(-100.0, 100.0), 1.0);
         assert!(win.is_none());
     }
@@ -429,7 +444,9 @@ mod tests {
     fn test_first_bracket_even_degree() {
         // root at zero is of even degree (touches but does not cross x-axis).
         // bracketing won't find that.
-        let f = |x| x * x;
+        let fin = |x| x * x;
+        let f = RealFn::new(&fin);
+
         let win = first_bracket(&f, &Bounds::new(-4.5, 4.5), 1.0);
         assert!(win.is_none());
     }
