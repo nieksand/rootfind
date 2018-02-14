@@ -35,32 +35,6 @@ properties of the algorithm being used, and more.
 
 Feedback is greatly appreciated.
 
-# Remaining Work
-In terms of algorithms, there are three major things missing:
-
-1. "Safe" variants of Newton-Raphson and Halley's Method which hybridize with a
-   bracketing method to ensure global convergence.
-2. Brent-Decker implementation for when no analytic derivatives are available.
-3. Specialized routines for solving roots of Polynomials.
-
-In terms of design, remaining work includes:
-
-1. Allowing visibility into the solver state as it runs.
-2. Potentially allowing optimized Newton-Raphson where the fraction f(x)/f'(x)
-   is supplied directly rather than being computed at runtime.  Cancellation of
-   terms provides an opportunity for performance optimization.
-
-There are also two projects I want to cross-validate both implementations and
-overall design against.  Specifically the C++ Boost Root Finders and the ones
-supplied in the Gnu Scientific Library.  The Numerical Recipes book also has
-solid implementations, but I want to avoid copyright issues so I'm mostly
-staying away from it.
-
-As expected, this project uses semantic versioning (major.minor.patch).  The
-remaining work mostly falls under 'minor' increments.  When that's all done, I
-would like some external review or feedback before cutting the official 1.0.0
-release.
-
 # Usage
 See the rustdocs for detailed documentation.
 
@@ -101,6 +75,31 @@ This quick example is an excerpt from tests/integration.rs.
         );
     }
 
+# Remaining Work
+In terms of algorithms, there are three major things missing:
+
+1. "Safe" variants of Newton-Raphson and Halley's Method which hybridize with a
+   bracketing method to ensure global convergence.
+2. Brent-Decker implementation for when no analytic derivatives are available.
+3. Specialized routines for solving roots of Polynomials.
+
+In terms of design, remaining work includes:
+
+1. Allowing visibility into the solver state as it runs.
+2. Potentially allowing optimized Newton-Raphson where the fraction f(x)/f'(x)
+   is supplied directly rather than being computed at runtime.  Cancellation of
+   terms provides an opportunity for performance optimization.
+
+There are also two projects I want to cross-validate both implementations and
+overall design against.  Specifically the C++ Boost Root Finders and the ones
+supplied in the Gnu Scientific Library.  The Numerical Recipes book also has
+solid implementations, but I want to avoid copyright issues so I'm mostly
+staying away from it.
+
+As expected, this project uses semantic versioning (major.minor.patch).  The
+remaining work mostly falls under 'minor' increments.  When that's all done, I
+would like some external review or feedback before cutting the official 1.0.0
+release.
 
 # References
 The Numerical Recipes book covers both implementation and methodology for
@@ -123,7 +122,7 @@ Wikipedia's "Root-finding algorithm" page provides a high-level overview of
 root-finding techniques, but it lacks the guidance and detail for practioners.
 The algorithm specific pages are worth looking at.
 
-I have also found the C++ Boost, SciPy, and Gnu Scientific Library root-finding
+I have also found the Boost, SciPy, and Gnu Scientific Library root-finding
 implementations and documentation to be helpful.
 
 # Author
