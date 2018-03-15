@@ -40,7 +40,7 @@
 //! ```
 //! The resulting brackets can be passed to a root finding method like
 //! bisection() to locate the actual roots.
-
+//!
 use std::f64;
 
 use wrap::RealFnEval;
