@@ -46,7 +46,7 @@ use std::f64;
 use wrap::RealFnEval;
 
 /// Bounds represents the closed finite interval [a,b].
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Bounds {
     /// Left side of interval.
     pub a: f64,
@@ -128,7 +128,7 @@ where
     type Item = Bounds;
 
     fn next(&mut self) -> Option<Bounds> {
-        let mut search_bounds = self.remaining.clone()?;
+        let mut search_bounds = self.remaining?;
         let result = first_bracket(self.f, &search_bounds, self.window_size);
 
         match result {
